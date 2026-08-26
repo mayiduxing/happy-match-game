@@ -660,7 +660,7 @@ body {
 
 /* 下落动画 */
 .candy.dropping {
-  transition: transform 0.35s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  transition: transform var(--drop-duration, 0.35s) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* 交换动画 */
@@ -2380,6 +2380,9 @@ body {
     const specialSpawns = []; // {r, c, color, type} - 在消除位置生成特殊糖果
 
     for (const match of matches) {
+      if (match.shape === 'five' || match.shape === 'four' || match.shape === 'TL') {
+        console.log('[Match] found ' + match.shape + ' match, length=' + match.length + ', cells=' + match.cells.length);
+      }
       // 计分
       const comboMult = Math.min(5, 1 + (gameState.combo - 1) * 0.5);
       let baseScore = 60 * match.length;
@@ -2429,6 +2432,7 @@ body {
 
       if (spawnType && spawnPos) {
         specialSpawns.push({ r: spawnPos[0], c: spawnPos[1], color: match.color, type: spawnType });
+        console.log('[Spawn] will spawn ' + spawnType + ' at (' + spawnPos[0] + ',' + spawnPos[1] + ')');
       }
 
       // 加入消除集合
@@ -2552,6 +2556,9 @@ body {
         for (const spawn of specialSpawns) {
           if (!gameState.board[spawn.r][spawn.c]) {
             gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
+            console.log('[Spawn] created ' + spawn.type + ' at (' + spawn.r + ',' + spawn.c + ')');
+          } else {
+            console.warn('[Spawn] blocked at (' + spawn.r + ',' + spawn.c + '), cell not empty');
           }
         }
 
@@ -2799,22 +2806,22 @@ body {
     renderBoard();
 
     const candies = boardEl.querySelectorAll('.candy');
-    candies.forEach(el => {
+    candies.forEach((el, idx) => {
       const r = parseInt(el.dataset.r);
       const c = parseInt(el.dataset.c);
-      // 初始位置在上方
       const move = moves.find(m => m.toR === r && m.toC === c && m.id == el.dataset.id);
       if (move) {
-        const dropRows = move.isNew ? (move.toR + 1) : (move.toR - move.fromR);
+        const dropRows = move.toR - move.fromR;
+        const duration = Math.min(0.5, 0.15 + dropRows * 0.06);
+        el.style.setProperty('--drop-duration', duration + 's');
         el.style.transform = `translateY(-${dropRows * cellSize}px)`;
         el.classList.add('dropping');
-        // 强制 reflow
         el.offsetHeight;
         el.style.transform = 'translateY(0)';
       }
     });
 
-    setTimeout(callback, 380);
+    setTimeout(callback, 500);
   }
 
   function onCascadeComplete() {
@@ -3150,21 +3157,33 @@ body {
       showExplosion(r, c);
 
       animateRemoval(toRemove, () => {
-        for (const key of toRemove) {
-          const [rr, cc] = key.split(',').map(Number);
-          if (gameState.board[rr][cc] && gameState.board[rr][cc].ice > 0) {
-            gameState.board[rr][cc].ice = 0;
-            gameState.iceBroken++;
-            addScore(300, [rr, cc]);
+        try {
+          for (const key of toRemove) {
+            const [rr, cc] = key.split(',').map(Number);
+            if (gameState.board[rr][cc] && gameState.board[rr][cc].ice > 0) {
+              gameState.board[rr][cc].ice = 0;
+              gameState.iceBroken++;
+              addScore(300, [rr, cc]);
+            }
+            gameState.board[rr][cc] = null;
           }
-          gameState.board[rr][cc] = null;
+          applyGravityAndFill(() => {
+            try {
+              renderBoard();
+              updateUI();
+              gameState.combo = 0;
+              processMatches();
+            } catch (e) {
+              console.error('bomb applyGravityAndFill callback error:', e);
+              gameState.isAnimating = false;
+              clearAnimationGuard();
+            }
+          });
+        } catch (e) {
+          console.error('bomb animateRemoval callback error:', e);
+          gameState.isAnimating = false;
+          clearAnimationGuard();
         }
-        applyGravityAndFill(() => {
-          renderBoard();
-          updateUI();
-          gameState.combo = 0;
-          processMatches();
-        });
       });
     } else if (item === 'hammer') {
       if (!candy) return;
@@ -3180,17 +3199,29 @@ body {
       addScore(500, [r, c]);
 
       animateRemoval(toRemove, () => {
-        if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-          gameState.board[r][c].ice = 0;
-          gameState.iceBroken++;
+        try {
+          if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+            gameState.board[r][c].ice = 0;
+            gameState.iceBroken++;
+          }
+          gameState.board[r][c] = null;
+          applyGravityAndFill(() => {
+            try {
+              renderBoard();
+              updateUI();
+              gameState.combo = 0;
+              processMatches();
+            } catch (e) {
+              console.error('hammer applyGravityAndFill callback error:', e);
+              gameState.isAnimating = false;
+              clearAnimationGuard();
+            }
+          });
+        } catch (e) {
+          console.error('hammer animateRemoval callback error:', e);
+          gameState.isAnimating = false;
+          clearAnimationGuard();
         }
-        gameState.board[r][c] = null;
-        applyGravityAndFill(() => {
-          renderBoard();
-          updateUI();
-          gameState.combo = 0;
-          processMatches();
-        });
       });
     }
   }
