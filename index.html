@@ -632,13 +632,30 @@ body {
 
 /* 消除动画 */
 .candy.removing {
-  animation: candyRemove 0.3s ease-out forwards;
+  animation: candyRemove 0.35s ease-out forwards;
 }
 
 @keyframes candyRemove {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.8; }
-  100% { transform: scale(0); opacity: 0; }
+  0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+  30% { transform: scale(1.4); opacity: 0.9; filter: brightness(1.8); }
+  60% { transform: scale(0.6); opacity: 0.5; filter: brightness(2); }
+  100% { transform: scale(0); opacity: 0; filter: brightness(3); }
+}
+
+/* 粒子爆炸效果（普通消除） */
+.particle-burst {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 25;
+  animation: particleFly 0.5s ease-out forwards;
+}
+
+@keyframes particleFly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
 }
 
 /* 下落动画 */
@@ -928,21 +945,36 @@ body {
 .explosion {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,200,100,0.5) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,180,50,0.7) 30%, rgba(255,100,50,0.4) 60%, transparent 75%);
   pointer-events: none;
   z-index: 20;
-  animation: explode 0.5s ease-out forwards;
+  animation: explode 0.6s ease-out forwards;
 }
 
 @keyframes explode {
-  0% { transform: scale(0); opacity: 1; }
-  100% { transform: scale(3); opacity: 0; }
+  0% { transform: scale(0); opacity: 1; box-shadow: 0 0 0 0 rgba(255,200,50,0.8); }
+  40% { transform: scale(2); opacity: 0.9; box-shadow: 0 0 30px 10px rgba(255,180,50,0.6); }
+  100% { transform: scale(4); opacity: 0; box-shadow: 0 0 60px 20px rgba(255,150,50,0); }
+}
+
+/* 爆炸扩散波纹 */
+.shockwave {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 200, 80, 0.8);
+  pointer-events: none;
+  z-index: 19;
+  animation: shockwaveExpand 0.7s ease-out forwards;
+}
+
+@keyframes shockwaveExpand {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(5); opacity: 0; }
 }
 
 /* 光线效果（条纹糖） */
 .light-beam {
   position: absolute;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
   pointer-events: none;
   z-index: 15;
   animation: beamFlash 0.5s ease-out forwards;
@@ -953,6 +985,14 @@ body {
   height: 100%;
   top: 0;
   left: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.3) 20%,
+    rgba(255,255,255,0.95) 45%,
+    rgba(200,255,255,0.9) 50%,
+    rgba(255,255,255,0.95) 55%,
+    rgba(255,255,255,0.3) 80%,
+    transparent 100%);
 }
 
 .light-beam.vertical {
@@ -960,11 +1000,55 @@ body {
   width: 100%;
   top: 0;
   left: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255,255,255,0.3) 20%,
+    rgba(255,255,255,0.95) 45%,
+    rgba(200,255,255,0.9) 50%,
+    rgba(255,255,255,0.95) 55%,
+    rgba(255,255,255,0.3) 80%,
+    transparent 100%);
+}
+
+/* 激光核心线 */
+.laser-core {
+  position: absolute;
+  pointer-events: none;
+  z-index: 16;
+  animation: laserCore 0.4s ease-out forwards;
+}
+
+.laser-core.horizontal {
+  width: 100%;
+  height: 3px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  box-shadow: 0 0 8px 2px rgba(255,255,255,0.8), 0 0 20px 4px rgba(100,200,255,0.5);
+}
+
+.laser-core.vertical {
+  height: 100%;
+  width: 3px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #fff, transparent);
+  box-shadow: 0 0 8px 2px rgba(255,255,255,0.8), 0 0 20px 4px rgba(100,200,255,0.5);
 }
 
 @keyframes beamFlash {
+  0% { opacity: 0; transform: scaleX(0.1); }
+  30% { opacity: 1; transform: scaleX(1); }
+  70% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.2); }
+}
+
+@keyframes laserCore {
   0% { opacity: 0; }
-  50% { opacity: 1; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
   100% { opacity: 0; }
 }
 
@@ -1216,6 +1300,255 @@ body {
     unlockedLevel: 1,
     levelStars: {},
   };
+
+  // ========= 动画守卫：防止 isAnimating 永久卡死 =========
+  let animationGuardTimer = null;
+  function startAnimationGuard() {
+    if (animationGuardTimer) clearTimeout(animationGuardTimer);
+    animationGuardTimer = setTimeout(function() {
+      if (gameState.isAnimating) {
+        console.warn('[AnimationGuard] isAnimating stuck for 5s, forcing reset');
+        gameState.isAnimating = false;
+      }
+      animationGuardTimer = null;
+    }, 5000);
+  }
+  function clearAnimationGuard() {
+    if (animationGuardTimer) {
+      clearTimeout(animationGuardTimer);
+      animationGuardTimer = null;
+    }
+  }
+
+  // ========= 音效系统（Web Audio API 程序生成） =========
+  const AudioSys = (function() {
+    var ctx = null;
+    var masterGain = null;
+    var muted = false;
+
+    function init() {
+      if (ctx) return;
+      try {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = ctx.createGain();
+        masterGain.gain.value = 0.35;
+        masterGain.connect(ctx.destination);
+      } catch (e) {
+        console.warn('Audio init failed:', e);
+      }
+    }
+
+    function resume() {
+      if (ctx && ctx.state === 'suspended') ctx.resume();
+    }
+
+    function playTone(freq, duration, type, startGain, endGain) {
+      init(); resume();
+      if (!ctx || muted) return;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(startGain || 0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(endGain || 0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    function playSlide() {
+      // 交换滑动：短促滑音
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, t);
+      osc.frequency.exponentialRampToValueAtTime(800, t + 0.08);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    }
+
+    function playMatch(count) {
+      // 普通消除：清脆爆破
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var notes = count >= 5 ? [523, 659, 784] : count >= 4 ? [523, 659] : [523];
+      notes.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t + i * 0.04);
+        gain.gain.setValueAtTime(0.2, t + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.04 + 0.15);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + i * 0.04);
+        osc.stop(t + i * 0.04 + 0.15);
+      });
+    }
+
+    function playBomb() {
+      // 炸弹：低沉爆炸
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      // 噪声爆发
+      var bufferSize = ctx.sampleRate * 0.3;
+      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.max(0, 1 - i / bufferSize);
+      }
+      var noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      var filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, t);
+      filter.frequency.exponentialRampToValueAtTime(100, t + 0.3);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      noise.start(t);
+      // 低音冲击
+      var osc = ctx.createOscillator();
+      var g2 = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, t);
+      osc.frequency.exponentialRampToValueAtTime(30, t + 0.2);
+      g2.gain.setValueAtTime(0.3, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.connect(g2);
+      g2.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.25);
+    }
+
+    function playRainbow() {
+      // 魔力鸟：梦幻上升和弦
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var freqs = [523.25, 659.25, 783.99, 1046.50];
+      freqs.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + i * 0.06);
+        gain.gain.setValueAtTime(0, t + i * 0.06);
+        gain.gain.linearRampToValueAtTime(0.2, t + i * 0.06 + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.4);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + i * 0.06);
+        osc.stop(t + i * 0.06 + 0.4);
+      });
+    }
+
+    function playStripe() {
+      // 条纹激光
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.exponentialRampToValueAtTime(400, t + 0.15);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.18);
+    }
+
+    function playCombo(n) {
+      // 连击提示：上升音阶
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var base = 440 + Math.min(n, 10) * 50;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(base, t);
+      osc.frequency.exponentialRampToValueAtTime(base * 1.5, t + 0.15);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    }
+
+    function playWin() {
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var notes = [523, 659, 784, 1047];
+      notes.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + i * 0.12);
+        gain.gain.setValueAtTime(0, t + i * 0.12);
+        gain.gain.linearRampToValueAtTime(0.25, t + i * 0.12 + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.5);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + i * 0.12);
+        osc.stop(t + i * 0.12 + 0.5);
+      });
+    }
+
+    function playLose() {
+      init(); resume();
+      if (!ctx || muted) return;
+      var t = ctx.currentTime;
+      var notes = [440, 370, 311, 262];
+      notes.forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t + i * 0.18);
+        gain.gain.setValueAtTime(0.2, t + i * 0.18);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.35);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + i * 0.18);
+        osc.stop(t + i * 0.18 + 0.35);
+      });
+    }
+
+    function playClick() {
+      playTone(800, 0.05, 'sine', 0.1, 0.001);
+    }
+
+    return {
+      init: init,
+      playSlide: playSlide,
+      playMatch: playMatch,
+      playBomb: playBomb,
+      playRainbow: playRainbow,
+      playStripe: playStripe,
+      playCombo: playCombo,
+      playWin: playWin,
+      playLose: playLose,
+      playClick: playClick,
+      setMute: function(v) { muted = v; }
+    };
+  })();
 
   let candyIdCounter = 0;
   const boardEl = document.getElementById('board');
@@ -1780,6 +2113,9 @@ body {
 
     gameState.board = generateBoard(config);
 
+    // 初始化音频上下文（用户交互后）
+    AudioSys.init();
+
     // 切换界面
     try {
       document.getElementById('start-screen').classList.remove('active');
@@ -1870,7 +2206,9 @@ body {
     if (a.chain || b.chain) return;
 
     gameState.isAnimating = true;
+    startAnimationGuard();
     clearSelected();
+    AudioSys.playSlide();
 
     // 先做交换动画
     const elA = getCandyEl(r1, c1);
@@ -1886,44 +2224,53 @@ body {
     }
 
     setTimeout(() => {
-      // 交换数据
-      [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
-
-      // 检查是否有匹配
-      const matches = findMatches(gameState.board);
-      
-      // 彩虹糖特殊处理：与普通糖交换触发同色全消
-      const hasRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) || (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
-      const bothSpecial = (gameState.board[r1][c1] && gameState.board[r1][c1].type !== CANDY_NORMAL) && (gameState.board[r2][c2] && gameState.board[r2][c2].type !== CANDY_NORMAL);
-      const hasRainbowSwap = hasRainbow && bothSpecial === false; // 彩虹+普通
-      const bothRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) && (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
-
-      if (matches.length > 0 || hasRainbowSwap || bothRainbow) {
-        // 有匹配或彩虹糖触发：扣步数，处理消除
-        gameState.steps--;
-        gameState.combo = 0;
-        renderBoard();
-        
-        if (hasRainbowSwap || bothRainbow) {
-          // 彩虹糖触发：手动添加消除集合
-          processRainbowSwap(r1, c1, r2, c2);
-        } else {
-          processMatches();
-        }
-      } else {
-        // 无匹配：交换回来
+      try {
+        // 交换数据
         [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
 
-        if (elA && elB) {
-          elA.style.transform = 'translate(0, 0)';
-          elB.style.transform = 'translate(0, 0)';
-        }
+        // 检查是否有匹配
+        const matches = findMatches(gameState.board);
+        
+        // 彩虹糖特殊处理：与普通糖交换触发同色全消
+        const hasRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) || (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
+        const bothSpecial = (gameState.board[r1][c1] && gameState.board[r1][c1].type !== CANDY_NORMAL) && (gameState.board[r2][c2] && gameState.board[r2][c2].type !== CANDY_NORMAL);
+        const hasRainbowSwap = hasRainbow && bothSpecial === false; // 彩虹+普通
+        const bothRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) && (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
 
-        setTimeout(() => {
-          if (elA) elA.classList.remove('swapping');
-          if (elB) elB.classList.remove('swapping');
-          gameState.isAnimating = false;
-        }, 200);
+        if (matches.length > 0 || hasRainbowSwap || bothRainbow) {
+          // 有匹配或彩虹糖触发：扣步数，处理消除
+          gameState.steps--;
+          gameState.combo = 0;
+          renderBoard();
+          
+          if (hasRainbowSwap || bothRainbow) {
+            // 彩虹糖触发：手动添加消除集合
+            processRainbowSwap(r1, c1, r2, c2);
+          } else {
+            processMatches();
+          }
+        } else {
+          // 无匹配：交换回来
+          [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
+
+          if (elA && elB) {
+            elA.style.transform = 'translate(0, 0)';
+            elB.style.transform = 'translate(0, 0)';
+          }
+
+          setTimeout(() => {
+            try {
+              if (elA) elA.classList.remove('swapping');
+              if (elB) elB.classList.remove('swapping');
+            } catch (e) { console.error(e); }
+            gameState.isAnimating = false;
+            clearAnimationGuard();
+          }, 200);
+        }
+      } catch (e) {
+        console.error('trySwap error:', e);
+        gameState.isAnimating = false;
+        clearAnimationGuard();
       }
     }, 200);
   }
@@ -1976,22 +2323,40 @@ body {
     }
     
     animateRemoval(toRemove, () => {
-      for (const key of toRemove) {
-        const [r, c] = key.split(',').map(Number);
-        if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-          gameState.board[r][c].ice = 0;
-          gameState.iceBroken++;
-          addScore(300, [r, c]);
+      try {
+        for (const key of toRemove) {
+          const [r, c] = key.split(',').map(Number);
+          if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+            gameState.board[r][c].ice = 0;
+            gameState.iceBroken++;
+            addScore(300, [r, c]);
+          }
+          gameState.board[r][c] = null;
         }
-        gameState.board[r][c] = null;
+        applyGravityAndFill(() => {
+          try {
+            renderBoard();
+            updateUI();
+            setTimeout(() => {
+              try {
+                processMatches();
+              } catch (e) {
+                console.error('processRainbowSwap chain error:', e);
+                gameState.isAnimating = false;
+                clearAnimationGuard();
+              }
+            }, 100);
+          } catch (e) {
+            console.error('applyGravityAndFill callback error:', e);
+            gameState.isAnimating = false;
+            clearAnimationGuard();
+          }
+        });
+      } catch (e) {
+        console.error('animateRemoval callback error:', e);
+        gameState.isAnimating = false;
+        clearAnimationGuard();
       }
-      applyGravityAndFill(() => {
-        renderBoard();
-        updateUI();
-        setTimeout(() => {
-          processMatches();
-        }, 100);
-      });
     });
   }
 
@@ -2115,70 +2480,107 @@ body {
       }
     }
 
+    // 播放消除音效
+    const hasBomb = Array.from(toRemove).some(function(key) {
+      var rc = key.split(',').map(Number);
+      var candy = gameState.board[rc[0]][rc[1]];
+      return candy && candy.type === CANDY_WRAPPED;
+    });
+    const hasRainbowRemove = Array.from(toRemove).some(function(key) {
+      var rc = key.split(',').map(Number);
+      var candy = gameState.board[rc[0]][rc[1]];
+      return candy && candy.type === CANDY_RAINBOW;
+    });
+    const hasStripe = Array.from(toRemove).some(function(key) {
+      var rc = key.split(',').map(Number);
+      var candy = gameState.board[rc[0]][rc[1]];
+      return candy && (candy.type === CANDY_STRIPED_H || candy.type === CANDY_STRIPED_V);
+    });
+    if (hasRainbowRemove) { AudioSys.playRainbow(); }
+    else if (hasBomb) { AudioSys.playBomb(); }
+    else if (hasStripe) { AudioSys.playStripe(); }
+    else { AudioSys.playMatch(toRemove.size); }
+
+    if (gameState.combo > 1) { AudioSys.playCombo(gameState.combo); }
+
     // 播放消除动画
     animateRemoval(toRemove, () => {
-      // 真正消除格子
-      const iceOnlyCells = new Set(); // 只碎冰、保留糖果的格子
-      for (const key of toRemove) {
-        const [r, c] = key.split(',').map(Number);
-        const candy = gameState.board[r][c];
-        if (candy && candy.ice > 0) {
-          candy.ice = 0;
-          gameState.iceBroken++;
-          addScore(300, [r, c]);
-          // 冰块下如果是普通糖被匹配消除，糖也消失；如果是特殊糖触发过了也消失
-          // 但如果这格只是因为相邻冰块才被波及（extra from special），糖保留
-          // 简化：匹配消除连冰带糖一起走；特殊触发波及的如果有冰只碎冰
-          // 这里简单判断：在原始匹配集合中的糖+冰一起消
-        }
-      }
-      
-      // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
-      // 特殊触发波及的格子有冰只碎冰
-      const matchCells = new Set();
-      for (const m of matches) {
-        for (const [r, c] of m.cells) {
-          matchCells.add(r + ',' + c);
-        }
-      }
-      
-      for (const key of toRemove) {
-        const [r, c] = key.split(',').map(Number);
-        const candy = gameState.board[r][c];
-        if (!candy) continue;
-        // 锁链：参与消除则解锁
-        if (candy.chain) {
-          candy.chain = false;
-        }
-        // 原始匹配消除：糖果消失
-        if (matchCells.has(key)) {
-          gameState.board[r][c] = null;
-        } else {
-          // 特殊波及：有冰只碎冰，糖保留
-          if (candy.ice <= 0) {
-            // 没冰的波及格也消除
-            gameState.board[r][c] = null;
+      try {
+        // 真正消除格子
+        const iceOnlyCells = new Set(); // 只碎冰、保留糖果的格子
+        for (const key of toRemove) {
+          const [r, c] = key.split(',').map(Number);
+          const candy = gameState.board[r][c];
+          if (candy && candy.ice > 0) {
+            candy.ice = 0;
+            gameState.iceBroken++;
+            addScore(300, [r, c]);
           }
-          // 有冰的：上面已碎冰，糖保留 → 不null
         }
-      }
-
-      // 生成特殊糖果（在消除位置）
-      for (const spawn of specialSpawns) {
-        if (!gameState.board[spawn.r][spawn.c]) {
-          gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
+        
+        // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
+        // 特殊触发波及的格子有冰只碎冰
+        const matchCells = new Set();
+        for (const m of matches) {
+          for (const [r, c] of m.cells) {
+            matchCells.add(r + ',' + c);
+          }
         }
-      }
+        
+        for (const key of toRemove) {
+          const [r, c] = key.split(',').map(Number);
+          const candy = gameState.board[r][c];
+          if (!candy) continue;
+          // 锁链：参与消除则解锁
+          if (candy.chain) {
+            candy.chain = false;
+          }
+          // 原始匹配消除：糖果消失
+          if (matchCells.has(key)) {
+            gameState.board[r][c] = null;
+          } else {
+            // 特殊波及：有冰只碎冰，糖保留
+            if (candy.ice <= 0) {
+              // 没冰的波及格也消除
+              gameState.board[r][c] = null;
+            }
+            // 有冰的：上面已碎冰，糖保留 → 不null
+          }
+        }
 
-      // 下落 + 填充
-      applyGravityAndFill(() => {
-        // 连锁检测
-        renderBoard();
-        updateUI();
-        setTimeout(() => {
-          processMatches();
-        }, 100);
-      });
+        // 生成特殊糖果（在消除位置）
+        for (const spawn of specialSpawns) {
+          if (!gameState.board[spawn.r][spawn.c]) {
+            gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
+          }
+        }
+
+        // 下落 + 填充
+        applyGravityAndFill(() => {
+          try {
+            // 连锁检测
+            renderBoard();
+            updateUI();
+            setTimeout(() => {
+              try {
+                processMatches();
+              } catch (e) {
+                console.error('processMatches chain error:', e);
+                gameState.isAnimating = false;
+                clearAnimationGuard();
+              }
+            }, 100);
+          } catch (e) {
+            console.error('applyGravityAndFill callback error:', e);
+            gameState.isAnimating = false;
+            clearAnimationGuard();
+          }
+        });
+      } catch (e) {
+        console.error('animateRemoval callback error:', e);
+        gameState.isAnimating = false;
+        clearAnimationGuard();
+      }
     });
   }
 
@@ -2224,6 +2626,13 @@ body {
         }
       }
     }
+    // 彩虹全屏闪光
+    var flash = document.createElement('div');
+    flash.className = 'rainbow-flash';
+    flash.style.setProperty('--cx', '50%');
+    flash.style.setProperty('--cy', '50%');
+    boardEl.appendChild(flash);
+    setTimeout(function() { flash.remove(); }, 550);
   }
 
   // 道具组合检测
@@ -2411,6 +2820,7 @@ body {
   function onCascadeComplete() {
     gameState.combo = 0;
     gameState.isAnimating = false;
+    clearAnimationGuard();
     updateUI();
 
     // 检查胜利
@@ -2455,6 +2865,7 @@ body {
   function onWin() {
     gameState.gameOver = true;
     gameState.isAnimating = true;
+    AudioSys.playWin();
 
     // 剩余步数奖励
     const bonusSteps = gameState.steps;
@@ -2488,6 +2899,7 @@ body {
   function onLose() {
     gameState.gameOver = true;
     gameState.isAnimating = true;
+    AudioSys.playLose();
 
     setTimeout(() => {
       showLoseModal();
@@ -2606,7 +3018,31 @@ body {
     exp.style.marginLeft = -cellSize / 2 + 'px';
     exp.style.marginTop = -cellSize / 2 + 'px';
     cell.appendChild(exp);
-    setTimeout(() => exp.remove(), 500);
+    // 添加扩散波纹
+    const wave = document.createElement('div');
+    wave.className = 'shockwave';
+    wave.style.left = '50%';
+    wave.style.top = '50%';
+    wave.style.width = cellSize + 'px';
+    wave.style.height = cellSize + 'px';
+    wave.style.marginLeft = -cellSize / 2 + 'px';
+    wave.style.marginTop = -cellSize / 2 + 'px';
+    cell.appendChild(wave);
+    // 添加小粒子
+    for (var i = 0; i < 6; i++) {
+      var p = document.createElement('div');
+      p.className = 'particle-burst';
+      p.style.left = '50%';
+      p.style.top = '50%';
+      p.style.background = ['#ff6b6b','#ffd93d','#ffa94d','#ff8787'][Math.floor(Math.random()*4)];
+      var angle = (Math.PI * 2 * i) / 6;
+      var dist = 20 + Math.random() * 20;
+      p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
+      cell.appendChild(p);
+      setTimeout(function(el) { return function() { el.remove(); }; }(p), 550);
+    }
+    setTimeout(function() { exp.remove(); wave.remove(); }, 700);
   }
 
   function showBeam(r, c, direction) {
@@ -2615,7 +3051,10 @@ body {
     const beam = document.createElement('div');
     beam.className = 'light-beam ' + (direction === 'h' ? 'horizontal' : 'vertical');
     cell.appendChild(beam);
-    setTimeout(() => beam.remove(), 500);
+    const laser = document.createElement('div');
+    laser.className = 'laser-core ' + (direction === 'h' ? 'horizontal' : 'vertical');
+    cell.appendChild(laser);
+    setTimeout(function() { beam.remove(); laser.remove(); }, 500);
   }
 
   function createConfetti() {
@@ -2655,6 +3094,7 @@ body {
   function selectItem(itemName) {
     if (gameState.isAnimating || gameState.gameOver) return;
     if (gameState.items[itemName] <= 0) return;
+    AudioSys.playClick();
 
     clearSelected();
 
@@ -2957,45 +3397,52 @@ body {
     });
 
     // 顶部按钮
-    document.getElementById('btn-back').addEventListener('click', goHome);
-    document.getElementById('btn-pause').addEventListener('click', togglePause);
+    document.getElementById('btn-back').addEventListener('click', function() { AudioSys.playClick(); goHome(); });
+    document.getElementById('btn-pause').addEventListener('click', function() { AudioSys.playClick(); togglePause(); });
 
     // 暂停弹窗
-    document.getElementById('btn-resume').addEventListener('click', togglePause);
+    document.getElementById('btn-resume').addEventListener('click', function() { AudioSys.playClick(); togglePause(); });
     document.getElementById('btn-restart').addEventListener('click', () => {
+      AudioSys.playClick();
       hideAllModals();
       startLevel(gameState.level);
     });
-    document.getElementById('btn-quit').addEventListener('click', goHome);
+    document.getElementById('btn-quit').addEventListener('click', function() { AudioSys.playClick(); goHome(); });
 
     // 胜利弹窗
     document.getElementById('btn-next').addEventListener('click', () => {
+      AudioSys.playClick();
       if (gameState.level < LEVELS.length) {
         hideAllModals();
         startLevel(gameState.level + 1);
       }
     });
     document.getElementById('btn-retry-win').addEventListener('click', () => {
+      AudioSys.playClick();
       hideAllModals();
       startLevel(gameState.level);
     });
-    document.getElementById('btn-home-win').addEventListener('click', goHome);
+    document.getElementById('btn-home-win').addEventListener('click', function() { AudioSys.playClick(); goHome(); });
 
     // 失败弹窗
     document.getElementById('btn-retry-lose').addEventListener('click', () => {
+      AudioSys.playClick();
       hideAllModals();
       startLevel(gameState.level);
     });
-    document.getElementById('btn-home-lose').addEventListener('click', goHome);
+    document.getElementById('btn-home-lose').addEventListener('click', function() { AudioSys.playClick(); goHome(); });
 
     // 开始界面
     document.getElementById('btn-continue').addEventListener('click', () => {
+      AudioSys.playClick();
       startLevel(gameState.unlockedLevel);
     });
     document.getElementById('btn-help').addEventListener('click', () => {
+      AudioSys.playClick();
       document.getElementById('help-modal').classList.add('show');
     });
     document.getElementById('btn-help-close').addEventListener('click', () => {
+      AudioSys.playClick();
       document.getElementById('help-modal').classList.remove('show');
     });
 

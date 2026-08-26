@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="creative-medium" content="mini-game">
+  <title>开心消消乐 - 免费试玩</title>
+  <style>
+/* ===========================
+   开心消消乐 - 样式表
+   =========================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --candy-red: #ff6b6b;
+  --candy-yellow: #ffd93d;
+  --candy-blue: #6bcbff;
+  --candy-green: #6bcf7f;
+  --candy-purple: #c56bff;
+  --candy-orange: #ffa94d;
+  --bg-gradient: linear-gradient(180deg, #ffe0f0 0%, #fff5e0 50%, #e0f7ff 100%);
+  --board-bg: rgba(255, 255, 255, 0.85);
+  --cell-bg: rgba(255, 255, 255, 0.5);
+  --text-dark: #4a3b5c;
+  --text-light: #fff;
+  --primary: #ff6b9d;
+  --primary-dark: #e55a8a;
+  --secondary: #6bcbff;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans SC', sans-serif;
+  color: var(--text-dark);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+body {
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Screen 切换 */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ===========================
+   开始界面
+   =========================== */
+#start-screen {
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.candy-float {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: floatUp 8s ease-in-out infinite;
+}
+
+.candy-float.c1 { background: var(--candy-red); top: 10%; left: 10%; animation-delay: 0s; }
+.candy-float.c2 { background: var(--candy-yellow); top: 20%; right: 15%; animation-delay: 1.5s; width: 40px; height: 40px; }
+.candy-float.c3 { background: var(--candy-blue); top: 40%; left: 8%; animation-delay: 3s; width: 60px; height: 60px; }
+.candy-float.c4 { background: var(--candy-green); top: 60%; right: 10%; animation-delay: 2s; }
+.candy-float.c5 { background: var(--candy-purple); top: 75%; left: 20%; animation-delay: 4s; width: 45px; height: 45px; }
+.candy-float.c6 { background: var(--candy-orange); top: 85%; right: 25%; animation-delay: 1s; }
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(180deg); }
+}
+
+.start-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.game-logo {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.game-logo h1 {
+  font-size: 42px;
+  background: linear-gradient(135deg, #ff6b9d, #ffa94d, #ffd93d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 2px 2px 0 rgba(255,255,255,0.5);
+  letter-spacing: 4px;
+  animation: logoBounce 2s ease-in-out infinite;
+}
+
+@keyframes logoBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.game-logo .subtitle {
+  font-size: 16px;
+  color: #8a7a9c;
+  margin-top: 4px;
+}
+
+/* 关卡地图 */
+.level-map {
+  width: 85%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.level-map h3 {
+  text-align: center;
+  font-size: 18px;
+  color: var(--text-dark);
+}
+
+.level-nodes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.level-node {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.level-node.unlocked {
+  background: linear-gradient(135deg, #ffd93d, #ffa94d);
+  color: #fff;
+}
+
+.level-node.unlocked:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 169, 77, 0.5);
+}
+
+.level-node.locked {
+  background: linear-gradient(135deg, #ddd, #bbb);
+  color: #888;
+  cursor: not-allowed;
+}
+
+.level-node.completed {
+  background: linear-gradient(135deg, #6bcf7f, #4db868);
+  color: #fff;
+}
+
+.level-node .node-stars {
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.level-node.current {
+  animation: nodePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes nodePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 169, 77, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 169, 77, 0); }
+}
+
+.start-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 80%;
+  max-width: 300px;
+}
+
+/* 按钮 */
+.btn {
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 107, 157, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 157, 0.5);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.btn-secondary:hover {
+  background: #fff;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+/* ===========================
+   游戏界面
+   =========================== */
+#game-screen {
+  height: 100%;
+}
+
+/* 顶部栏 */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 107, 157, 0.15);
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:active {
+  transform: scale(0.9);
+}
+
+.level-info {
+  text-align: center;
+  flex: 1;
+}
+
+.level-num {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+.target-display {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.target-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.8);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.target-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* HUD栏 */
+.hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  gap: 8px;
+}
+
+.hud-item {
+  text-align: center;
+  flex: 1;
+}
+
+.hud-label {
+  font-size: 11px;
+  color: #8a7a9c;
+  margin-bottom: 2px;
+}
+
+.hud-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.steps-item .hud-value {
+  color: var(--primary);
+}
+
+.score-item .hud-value {
+  color: #ffa94d;
+}
+
+.stars-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  font-size: 16px;
+  color: #ddd;
+}
+
+.stars .star.lit {
+  color: #ffd93d;
+  text-shadow: 0 1px 3px rgba(255, 217, 61, 0.5);
+}
+
+.star-bar {
+  width: 80px;
+  height: 4px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.star-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd93d, #ffa94d);
+  width: 0%;
+  transition: width 0.3s;
+  border-radius: 2px;
+}
+
+/* 棋盘 */
+.board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  position: relative;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  gap: 2px;
+  width: min(92vw, 420px);
+  height: min(92vw, 420px);
+  aspect-ratio: 1;
+  background: var(--board-bg);
+  padding: 6px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.2);
+  position: relative;
+}
+
+.cell {
+  position: relative;
+  border-radius: 8px;
+  background: var(--cell-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 糖果元素 */
+.candy {
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    inset 0 -4px 8px rgba(0,0,0,0.15),
+    inset 0 4px 8px rgba(255,255,255,0.4),
+    0 2px 6px rgba(0,0,0,0.15);
+}
+
+.candy::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 30%;
+  height: 20%;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+.candy.red { background: radial-gradient(circle at 30% 30%, #ff8787, var(--candy-red)); }
+.candy.yellow { background: radial-gradient(circle at 30% 30%, #ffe066, var(--candy-yellow)); }
+.candy.blue { background: radial-gradient(circle at 30% 30%, #87d9ff, var(--candy-blue)); }
+.candy.green { background: radial-gradient(circle at 30% 30%, #8de09d, var(--candy-green)); }
+.candy.purple { background: radial-gradient(circle at 30% 30%, #d487ff, var(--candy-purple)); }
+.candy.orange { background: radial-gradient(circle at 30% 30%, #ffb86c, var(--candy-orange)); }
+
+.candy.selected {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 
+    inset 0 -4px 8px rgba(0,0,0,0.15),
+    inset 0 4px 8px rgba(255,255,255,0.4),
+    0 0 0 3px #fff,
+    0 0 15px rgba(255, 107, 157, 0.6);
+}
+
+.candy.hint {
+  animation: hintPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 特殊糖果 */
+.candy.striped-h::after,
+.candy.striped-v::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.8);
+  border-radius: 2px;
+}
+
+.candy.striped-h::after {
+  width: 70%;
+  height: 4px;
+  top: 50%;
+  left: 15%;
+  transform: translateY(-50%);
+  box-shadow: 0 -6px 0 rgba(255,255,255,0.6), 0 6px 0 rgba(255,255,255,0.6);
+}
+
+.candy.striped-v::after {
+  width: 4px;
+  height: 70%;
+  left: 50%;
+  top: 15%;
+  transform: translateX(-50%);
+  box-shadow: -6px 0 0 rgba(255,255,255,0.6), 6px 0 0 rgba(255,255,255,0.6);
+}
+
+.candy.wrapped {
+  border-radius: 30%;
+}
+
+.candy.wrapped::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  border: 2px solid rgba(255,255,255,0.7);
+  border-radius: 25%;
+}
+
+.candy.rainbow {
+  background: conic-gradient(
+    from 0deg,
+    #ff6b6b, #ffd93d, #6bcf7f, #6bcbff, #c56bff, #ff6b6b
+  );
+  animation: rainbowSpin 3s linear infinite;
+}
+
+@keyframes rainbowSpin {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(360deg); }
+}
+
+.candy.rainbow::before {
+  background: rgba(255,255,255,0.5);
+}
+
+/* 障碍物 */
+.ice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(150, 220, 255, 0.5);
+  border: 2px solid rgba(200, 240, 255, 0.8);
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+  z-index: 5;
+}
+
+.ice::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 15%;
+  width: 35%;
+  height: 15%;
+  background: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  transform: rotate(-20deg);
+}
+
+.chain {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 90%;
+  height: 90%;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.chain::before,
+.chain::after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(90deg, #888 0%, #ccc 50%, #888 100%);
+  border-radius: 3px;
+}
+
+.chain::before {
+  width: 100%;
+  height: 6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(30deg);
+}
+
+.chain::after {
+  width: 100%;
+  height: 6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-30deg);
+}
+
+/* 消除动画 */
+.candy.removing {
+  animation: candyRemove 0.3s ease-out forwards;
+}
+
+@keyframes candyRemove {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* 下落动画 */
+.candy.dropping {
+  transition: transform 0.35s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+/* 交换动画 */
+.candy.swapping {
+  transition: transform 0.2s ease-out;
+}
+
+/* 组合文字 */
+.combo-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: bold;
+  color: #ff6b9d;
+  text-shadow: 2px 2px 0 #fff, 4px 4px 10px rgba(255,107,157,0.4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.combo-text.show {
+  animation: comboPop 1s ease-out forwards;
+}
+
+@keyframes comboPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  40% { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -100%) scale(1); }
+}
+
+/* 道具栏 */
+.item-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+}
+
+.item-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.item-slot:hover {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.item-slot.active {
+  background: rgba(255, 107, 157, 0.2);
+  transform: scale(1.1);
+}
+
+.item-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.item-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid #fff;
+}
+
+.item-label {
+  font-size: 11px;
+  color: #8a7a9c;
+  margin-top: 2px;
+}
+
+/* ===========================
+   弹窗
+   =========================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 85%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 胜利弹窗 */
+.win-modal h2 {
+  color: #ffa94d;
+}
+
+.result-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  font-size: 48px;
+}
+
+.result-stars .star {
+  color: #ddd;
+  display: inline-block;
+  transform: scale(0);
+  animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.result-stars .star.lit {
+  color: #ffd93d;
+  text-shadow: 0 2px 10px rgba(255, 217, 61, 0.5);
+}
+
+.result-stars .star:nth-child(1) { animation-delay: 0.3s; }
+.result-stars .star:nth-child(2) { animation-delay: 0.5s; }
+.result-stars .star:nth-child(3) { animation-delay: 0.7s; }
+
+@keyframes starPop {
+  0% { transform: scale(0) rotate(-180deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.result-score {
+  margin: 16px 0;
+}
+
+.result-label {
+  font-size: 14px;
+  color: #8a7a9c;
+}
+
+.result-value {
+  font-size: 42px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ff6b9d, #ffa94d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.result-detail {
+  font-size: 14px;
+  color: #8a7a9c;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* 失败弹窗 */
+.lose-modal h2 {
+  color: #ff6b6b;
+}
+
+/* 帮助弹窗 */
+.help-modal {
+  text-align: left;
+}
+
+.help-modal h2 {
+  text-align: center;
+}
+
+.help-content {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.help-section {
+  margin-bottom: 16px;
+}
+
+.help-section h3 {
+  font-size: 16px;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.help-section p {
+  font-size: 13px;
+  color: #6b5b7c;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* 礼花 */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  animation: confettiFall 2s ease-in forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+}
+
+/* 分数飘字 */
+.score-popup {
+  position: absolute;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  pointer-events: none;
+  z-index: 50;
+  animation: scoreFloat 1s ease-out forwards;
+}
+
+@keyframes scoreFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+}
+
+/* 爆炸效果 */
+.explosion {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,200,100,0.5) 50%, transparent 70%);
+  pointer-events: none;
+  z-index: 20;
+  animation: explode 0.5s ease-out forwards;
+}
+
+@keyframes explode {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+/* 光线效果（条纹糖） */
+.light-beam {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  pointer-events: none;
+  z-index: 15;
+  animation: beamFlash 0.5s ease-out forwards;
+}
+
+.light-beam.horizontal {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.light-beam.vertical {
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+@keyframes beamFlash {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 响应式 */
+@media (max-width: 360px) {
+  .game-logo h1 { font-size: 34px; }
+  .board { gap: 1px; padding: 4px; border-radius: 12px; }
+  .candy::before { width: 25%; height: 15%; }
+  .item-icon { font-size: 24px; }
+  .hud-value { font-size: 18px; }
+}
+
+@media (min-width: 500px) {
+  .board {
+    width: 420px;
+    height: 420px;
+  }
+}
+
+/* 小屏紧凑布局 */
+@media (max-height: 640px) {
+  .top-bar { padding: 8px 12px; }
+  .hud-bar { padding: 6px 12px; }
+  .hud-value { font-size: 18px; }
+  .item-bar { padding: 8px 12px; }
+  .item-icon { font-size: 22px; }
+}
+
+</style>
+</head>
+<body>
+  <div id="app">
+    <!-- 开始界面 -->
+    <div id="start-screen" class="screen active">
+      <div class="bg-decor">
+        <div class="candy-float c1"></div>
+        <div class="candy-float c2"></div>
+        <div class="candy-float c3"></div>
+        <div class="candy-float c4"></div>
+        <div class="candy-float c5"></div>
+        <div class="candy-float c6"></div>
+      </div>
+      <div class="start-content">
+        <div class="game-logo">
+          <h1>开心消消乐</h1>
+          <p class="subtitle">免费试玩版</p>
+        </div>
+        <div class="level-map" id="level-map">
+          <!-- 关卡节点由JS生成 -->
+        </div>
+        <div class="start-buttons">
+          <button class="btn btn-primary btn-lg" id="btn-continue" onclick="if(window._startGame)window._startGame();else{var s=document.getElementById('start-screen'),g=document.getElementById('game-screen');s&&s.classList.remove('active');g&&g.classList.add('active');}">继续游戏</button>
+          <button class="btn btn-secondary" id="btn-help">游戏帮助</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="game-screen" class="screen">
+      <!-- 顶部信息栏 -->
+      <div class="top-bar">
+        <button class="icon-btn" id="btn-back">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M15.5 19L8.5 12l7-7 1.4 1.4L11.3 12l5.6 5.6z"/></svg>
+        </button>
+        <div class="level-info">
+          <div class="level-num">第 <span id="level-number">1</span> 关</div>
+          <div class="target-display" id="target-display"></div>
+        </div>
+        <button class="icon-btn" id="btn-pause">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+      </div>
+
+      <!-- 步数与分数 -->
+      <div class="hud-bar">
+        <div class="hud-item steps-item">
+          <div class="hud-label">剩余步数</div>
+          <div class="hud-value" id="steps-value">25</div>
+        </div>
+        <div class="hud-item score-item">
+          <div class="hud-label">分数</div>
+          <div class="hud-value" id="score-value">0</div>
+        </div>
+        <div class="hud-item stars-item">
+          <div class="stars" id="stars-display">
+            <span class="star">☆</span>
+            <span class="star">☆</span>
+            <span class="star">☆</span>
+          </div>
+          <div class="star-bar"><div class="star-bar-fill" id="star-bar-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- 棋盘区 -->
+      <div class="board-wrap">
+        <div id="board" class="board"></div>
+        <div id="combo-text" class="combo-text"></div>
+      </div>
+
+      <!-- 道具栏 -->
+      <div class="item-bar">
+        <div class="item-slot" data-item="bomb">
+          <div class="item-icon">💣</div>
+          <div class="item-count" id="item-bomb-count">3</div>
+          <div class="item-label">炸弹</div>
+        </div>
+        <div class="item-slot" data-item="hammer">
+          <div class="item-icon">🔨</div>
+          <div class="item-count" id="item-hammer-count">2</div>
+          <div class="item-label">锤子</div>
+        </div>
+        <div class="item-slot" data-item="shuffle">
+          <div class="item-icon">🔄</div>
+          <div class="item-count" id="item-shuffle-count">2</div>
+          <div class="item-label">刷新</div>
+        </div>
+        <div class="item-slot" data-item="hint">
+          <div class="item-icon">💡</div>
+          <div class="item-count" id="item-hint-count">3</div>
+          <div class="item-label">提示</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 暂停弹窗 -->
+    <div id="pause-modal" class="modal">
+      <div class="modal-content">
+        <h2>游戏暂停</h2>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" id="btn-resume">继续游戏</button>
+          <button class="btn btn-secondary" id="btn-restart">重新开始</button>
+          <button class="btn btn-secondary" id="btn-quit">返回主页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 胜利弹窗 -->
+    <div id="win-modal" class="modal">
+      <div class="modal-content win-modal">
+        <div class="confetti-container" id="confetti"></div>
+        <h2>🎉 过关！</h2>
+        <div class="result-stars" id="result-stars">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+        </div>
+        <div class="result-score">
+          <div class="result-label">总得分</div>
+          <div class="result-value" id="final-score">0</div>
+        </div>
+        <div class="result-detail" id="result-detail"></div>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" id="btn-next">下一关</button>
+          <button class="btn btn-secondary" id="btn-retry-win">再玩一次</button>
+          <button class="btn btn-secondary" id="btn-home-win">返回主页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 失败弹窗 -->
+    <div id="lose-modal" class="modal">
+      <div class="modal-content lose-modal">
+        <h2>😢 挑战失败</h2>
+        <div class="result-score">
+          <div class="result-label">本次得分</div>
+          <div class="result-value" id="lose-score">0</div>
+        </div>
+        <div class="result-detail" id="lose-detail"></div>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" id="btn-retry-lose">再试一次</button>
+          <button class="btn btn-secondary" id="btn-home-lose">返回主页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帮助弹窗 -->
+    <div id="help-modal" class="modal">
+      <div class="modal-content help-modal">
+        <h2>游戏帮助</h2>
+        <div class="help-content">
+          <div class="help-section">
+            <h3>🎮 基本玩法</h3>
+            <p>交换相邻的两个糖果，使3个或以上同色糖果连成一线即可消除得分。</p>
+          </div>
+          <div class="help-section">
+            <h3>⭐ 特殊糖果</h3>
+            <p><strong>条纹糖</strong>：4连消除生成，可消除整行或整列</p>
+            <p><strong>彩虹糖</strong>：5连消除生成，消除所有同色糖果</p>
+            <p><strong>包装糖</strong>：T/L型消除生成，3×3区域爆炸两次</p>
+          </div>
+          <div class="help-section">
+            <h3>💎 组合效果</h3>
+            <p>条纹+条纹 = 十字消除</p>
+            <p>条纹+彩虹 = 该色全变条纹并触发</p>
+            <p>彩虹+彩虹 = 全屏清屏</p>
+          </div>
+          <div class="help-section">
+            <h3>🧊 障碍物</h3>
+            <p><strong>冰块</strong>：相邻消除1次可击碎</p>
+            <p><strong>锁链</strong>：元素被锁，需参与消除解锁</p>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" id="btn-help-close">知道了</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/* ==========================================
+   开心消消乐 - 核心游戏逻辑
+   ========================================== */
+
+(() => {
+  'use strict';
+
+  // ========= 常量配置 =========
+  const BOARD_SIZE = 9;
+  const COLORS = ['red', 'yellow', 'blue', 'green', 'purple', 'orange'];
+  const COLOR_NAMES = { red: '红', yellow: '黄', blue: '蓝', green: '绿', purple: '紫', orange: '橙' };
+
+  // 糖果类型
+  const CANDY_NORMAL = 'normal';
+  const CANDY_STRIPED_H = 'striped-h'; // 横向条纹（消行）
+  const CANDY_STRIPED_V = 'striped-v'; // 纵向条纹（消列）
+  const CANDY_WRAPPED = 'wrapped';     // 包装糖
+  const CANDY_RAINBOW = 'rainbow';     // 彩虹糖
+
+  // 状态
+  let gameState = {
+    level: 1,
+    board: [],           // 二维数组：每个格子 { color, type, ice, chain, id }
+    score: 0,
+    steps: 0,
+    maxSteps: 25,
+    targetScore: 3000,
+    targetType: 'SCORE', // SCORE / COLLECT / CLEAR
+    targetCollect: null, // {color, count, current}
+    iceTotal: 0,
+    iceBroken: 0,
+    selected: null,      // {r, c}
+    isAnimating: false,
+    combo: 0,
+    items: { bomb: 3, hammer: 2, shuffle: 2, hint: 3 },
+    activeItem: null,
+    gameOver: false,
+    paused: false,
+    unlockedLevel: 1,
+    levelStars: {},
+  };
+
+  let candyIdCounter = 0;
+  const boardEl = document.getElementById('board');
+  let cellSize = 0;
+
+  // ========= 关卡配置 =========
+  const LEVELS = [
+    // 第1关：分数达标，简单
+    {
+      level: 1,
+      targetType: 'SCORE',
+      targetScore: 3000,
+      steps: 25,
+      obstacles: { ice: 0, chain: 0 },
+      collectColor: null,
+      collectCount: 0,
+    },
+    // 第2关：分数达标，稍难，解锁炸弹
+    {
+      level: 2,
+      targetType: 'SCORE',
+      targetScore: 5000,
+      steps: 22,
+      obstacles: { ice: 0, chain: 0 },
+    },
+    // 第3关：收集元素
+    {
+      level: 3,
+      targetType: 'COLLECT',
+      targetScore: 4000,
+      steps: 22,
+      collectColor: 'red',
+      collectCount: 15,
+      obstacles: { ice: 4, chain: 0 },
+    },
+    // 第4关：消除冰块
+    {
+      level: 4,
+      targetType: 'CLEAR',
+      targetScore: 3500,
+      steps: 22,
+      obstacles: { ice: 12, chain: 0 },
+    },
+    // 第5关：混合 - 分数 + 锁链
+    {
+      level: 5,
+      targetType: 'SCORE',
+      targetScore: 6000,
+      steps: 20,
+      obstacles: { ice: 6, chain: 4 },
+    },
+    // 第6关：高分挑战
+    {
+      level: 6,
+      targetType: 'SCORE',
+      targetScore: 8000,
+      steps: 20,
+      obstacles: { ice: 8, chain: 4 },
+    },
+    // 第7关：收集 + 冰块
+    {
+      level: 7,
+      targetType: 'COLLECT',
+      targetScore: 5000,
+      steps: 22,
+      collectColor: 'blue',
+      collectCount: 20,
+      obstacles: { ice: 10, chain: 2 },
+    },
+    // 第8关：综合挑战
+    {
+      level: 8,
+      targetType: 'SCORE',
+      targetScore: 10000,
+      steps: 18,
+      obstacles: { ice: 12, chain: 6 },
+    },
+  ];
+
+  // ========= 工具函数 =========
+  function rand(n) { return Math.floor(Math.random() * n); }
+  function randChoice(arr) { return arr[rand(arr.length)]; }
+  function inBounds(r, c) { return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE; }
+
+  function createCandy(color, type = CANDY_NORMAL) {
+    return {
+      id: ++candyIdCounter,
+      color: color,
+      type: type,
+      ice: 0,
+      chain: false,
+    };
+  }
+
+  // ========= 存档 =========
+  function loadProgress() {
+    try {
+      const s = localStorage.getItem('happy_match_save');
+      if (s) {
+        const data = JSON.parse(s);
+        gameState.unlockedLevel = data.unlockedLevel || 1;
+        gameState.levelStars = data.levelStars || {};
+      }
+    } catch (e) {}
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem('happy_match_save', JSON.stringify({
+        unlockedLevel: gameState.unlockedLevel,
+        levelStars: gameState.levelStars,
+      }));
+    } catch (e) {}
+  }
+
+  // ========= 棋盘生成 =========
+  function generateBoard(levelConfig) {
+    const board = [];
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      board[r] = [];
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        board[r][c] = null;
+      }
+    }
+
+    // 放置冰块和锁链（随机分布在中下部）
+    const iceCount = (levelConfig.obstacles && levelConfig.obstacles.ice) || 0;
+    const chainCount = (levelConfig.obstacles && levelConfig.obstacles.chain) || 0;
+
+    const icePositions = [];
+    const chainPositions = [];
+
+    // 冰块主要在中下区域
+    const candidates = [];
+    for (let r = 3; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        candidates.push([r, c]);
+      }
+    }
+    // 打乱
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = rand(i + 1);
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+
+    let idx = 0;
+    for (let i = 0; i < iceCount && idx < candidates.length; i++, idx++) {
+      icePositions.push(candidates[idx]);
+    }
+    for (let i = 0; i < chainCount && idx < candidates.length; i++, idx++) {
+      chainPositions.push(candidates[idx]);
+    }
+
+    // 逐行逐列填充，避免初始3连
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        let color;
+        let tries = 0;
+        do {
+          color = COLORS[rand(COLORS.length)];
+          tries++;
+        } while (tries < 20 && (
+          (c >= 2 && board[r][c-1] && board[r][c-2] && board[r][c-1].color === color && board[r][c-2].color === color) ||
+          (r >= 2 && board[r-1][c] && board[r-2][c] && board[r-1][c].color === color && board[r-2][c].color === color)
+        ));
+
+        const candy = createCandy(color, CANDY_NORMAL);
+        board[r][c] = candy;
+      }
+    }
+
+    // 应用障碍物
+    for (const [r, c] of icePositions) {
+      if (board[r][c]) board[r][c].ice = 1;
+    }
+    for (const [r, c] of chainPositions) {
+      if (board[r][c]) board[r][c].chain = true;
+    }
+
+    // 确保有可行动作
+    let attempts = 0;
+    while (!hasPossibleMoves(board) && attempts < 20) {
+      shuffleBoard(board);
+      attempts++;
+    }
+
+    return board;
+  }
+
+  function shuffleBoard(board) {
+    const candies = [];
+    const iceMap = [];
+    const chainMap = [];
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      iceMap[r] = [];
+      chainMap[r] = [];
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c]) {
+          candies.push({ color: board[r][c].color, type: board[r][c].type });
+          iceMap[r][c] = board[r][c].ice;
+          chainMap[r][c] = board[r][c].chain;
+        }
+      }
+    }
+    // 打乱颜色
+    for (let i = candies.length - 1; i > 0; i--) {
+      const j = rand(i + 1);
+      [candies[i].color, candies[j].color] = [candies[j].color, candies[i].color];
+    }
+    // 重新填充
+    let idx = 0;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c]) {
+          board[r][c].color = candies[idx].color;
+          board[r][c].type = CANDY_NORMAL;
+          board[r][c].ice = iceMap[r][c];
+          board[r][c].chain = chainMap[r][c];
+          idx++;
+        }
+      }
+    }
+  }
+
+  // ========= 匹配检测 =========
+  function findMatches(board) {
+    const matches = []; // [{ cells: [[r,c],...], type, color }]
+    const visited = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(false));
+
+    // 横向检测
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      let c = 0;
+      while (c < BOARD_SIZE) {
+        const candy = board[r][c];
+        if (!candy) { c++; continue; }
+        const color = candy.color;
+        const type = candy.type;
+        // 彩虹糖不参与同色匹配检测
+        if (type === CANDY_RAINBOW) { c++; continue; }
+
+        let end = c + 1;
+        while (end < BOARD_SIZE && board[r][end] && board[r][end].color === color && board[r][end].type !== CANDY_RAINBOW) {
+          end++;
+        }
+        const len = end - c;
+        if (len >= 3) {
+          const cells = [];
+          for (let k = c; k < end; k++) cells.push([r, k]);
+          matches.push({ cells, color, direction: 'h', length: len });
+        }
+        c = end;
+      }
+    }
+
+    // 纵向检测
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      let r = 0;
+      while (r < BOARD_SIZE) {
+        const candy = board[r][c];
+        if (!candy) { r++; continue; }
+        const color = candy.color;
+        const type = candy.type;
+        if (type === CANDY_RAINBOW) { r++; continue; }
+
+        let end = r + 1;
+        while (end < BOARD_SIZE && board[end][c] && board[end][c].color === color && board[end][c].type !== CANDY_RAINBOW) {
+          end++;
+        }
+        const len = end - r;
+        if (len >= 3) {
+          const cells = [];
+          for (let k = r; k < end; k++) cells.push([k, c]);
+          matches.push({ cells, color, direction: 'v', length: len });
+        }
+        r = end;
+      }
+    }
+
+    return mergeMatches(matches);
+  }
+
+  function mergeMatches(matches) {
+    // 合并T型和L型（共享交点的横竖匹配）
+    const result = [];
+    const used = new Set();
+
+    // 先找出T/L型：一个横匹配和一个竖匹配相交且交点在中间
+    const hMatches = matches.filter(m => m.direction === 'h');
+    const vMatches = matches.filter(m => m.direction === 'v');
+
+    const combined = new Set();
+
+    for (let i = 0; i < hMatches.length; i++) {
+      for (let j = 0; j < vMatches.length; j++) {
+        const hm = hMatches[i];
+        const vm = vMatches[j];
+        if (hm.color !== vm.color) continue;
+
+        // 找交点
+        let cross = null;
+        let crossHIdx = -1, crossVIdx = -1;
+        for (let hi = 0; hi < hm.cells.length; hi++) {
+          const [hr, hc] = hm.cells[hi];
+          for (let vi = 0; vi < vm.cells.length; vi++) {
+            const [vr, vc] = vm.cells[vi];
+            if (hr === vr && hc === vc) {
+              cross = [hr, hc];
+              crossHIdx = hi;
+              crossVIdx = vi;
+              break;
+            }
+          }
+          if (cross) break;
+        }
+        if (!cross) continue;
+
+        // 交点必须是两个匹配的"内部"点（不是两端第一个），才算T/L型
+        const hIsInner = crossHIdx > 0 && crossHIdx < hm.cells.length - 1;
+        const vIsInner = crossVIdx > 0 && crossVIdx < vm.cells.length - 1;
+        // 至少一个是内部点，形成T型；两个都是内部则是十字型(也当T/L处理，生成包装糖)
+        if (hIsInner || vIsInner) {
+          const allCells = [...hm.cells];
+          for (const cell of vm.cells) {
+            if (!allCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
+              allCells.push(cell);
+            }
+          }
+          result.push({
+            cells: allCells,
+            color: hm.color,
+            shape: 'TL',
+            length: allCells.length,
+          });
+          combined.add('h' + i);
+          combined.add('v' + j);
+        }
+      }
+    }
+
+    // 加入未被合并的匹配
+    for (let i = 0; i < hMatches.length; i++) {
+      if (combined.has('h' + i)) continue;
+      const m = hMatches[i];
+      result.push({
+        cells: m.cells,
+        color: m.color,
+        shape: m.length >= 5 ? 'five' : (m.length === 4 ? 'four' : 'three'),
+        direction: 'h',
+        length: m.length,
+      });
+    }
+    for (let j = 0; j < vMatches.length; j++) {
+      if (combined.has('v' + j)) continue;
+      const m = vMatches[j];
+      result.push({
+        cells: m.cells,
+        color: m.color,
+        shape: m.length >= 5 ? 'five' : (m.length === 4 ? 'four' : 'three'),
+        direction: 'v',
+        length: m.length,
+      });
+    }
+
+    return result;
+  }
+
+  // ========= 可行动作检测 =========
+  function hasPossibleMoves(board) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        // 尝试向右交换
+        if (c < BOARD_SIZE - 1) {
+          if (canSwap(board, r, c, r, c + 1)) return true;
+        }
+        // 尝试向下交换
+        if (r < BOARD_SIZE - 1) {
+          if (canSwap(board, r, c, r + 1, c)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function canSwap(board, r1, c1, r2, c2) {
+    const a = board[r1][c1];
+    const b = board[r2][c2];
+    if (!a || !b) return false;
+    if (a.chain || b.chain) return false; // 被锁链的不能动
+    // 彩虹糖与任意普通糖交换都有效（触发同色全消）
+    if (a.type === CANDY_RAINBOW && b.type !== CANDY_RAINBOW) return true;
+    if (b.type === CANDY_RAINBOW && a.type !== CANDY_RAINBOW) return true;
+    // 彩虹糖+彩虹糖组合
+    if (a.type === CANDY_RAINBOW && b.type === CANDY_RAINBOW) return true;
+    // 普通交换后检测匹配
+    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    const matches = findMatches(board);
+    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    return matches.length > 0;
+  }
+
+  function findHint(board) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (c < BOARD_SIZE - 1) {
+          if (canSwap(board, r, c, r, c + 1)) {
+            return [[r, c], [r, c + 1]];
+          }
+        }
+        if (r < BOARD_SIZE - 1) {
+          if (canSwap(board, r, c, r + 1, c)) {
+            return [[r, c], [r + 1, c]];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // ========= 渲染 =========
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+
+        const candy = gameState.board[r][c];
+        if (candy) {
+          const candyEl = createCandyElement(candy, r, c);
+          cell.appendChild(candyEl);
+        }
+
+        boardEl.appendChild(cell);
+      }
+    }
+    updateCellSize();
+  }
+
+  function createCandyElement(candy, r, c) {
+    const el = document.createElement('div');
+    el.className = 'candy ' + candy.color;
+    el.dataset.id = candy.id;
+    el.dataset.r = r;
+    el.dataset.c = c;
+
+    if (candy.type === CANDY_STRIPED_H) el.classList.add('striped-h');
+    if (candy.type === CANDY_STRIPED_V) el.classList.add('striped-v');
+    if (candy.type === CANDY_WRAPPED) el.classList.add('wrapped');
+    if (candy.type === CANDY_RAINBOW) el.classList.add('rainbow');
+
+    if (candy.ice > 0) {
+      const ice = document.createElement('div');
+      ice.className = 'ice';
+      el.appendChild(ice);
+    }
+    if (candy.chain) {
+      const chain = document.createElement('div');
+      chain.className = 'chain';
+      el.appendChild(chain);
+    }
+
+    return el;
+  }
+
+  function getCandyEl(r, c) {
+    return boardEl.querySelector(`.candy[data-r="${r}"][data-c="${c}"]`);
+  }
+
+  function updateCellSize() {
+    const firstCell = boardEl.querySelector('.cell');
+    if (firstCell) {
+      cellSize = firstCell.offsetWidth;
+    }
+  }
+
+  function updateCandyPosition(r, c) {
+    const el = getCandyEl(r, c);
+    if (el) {
+      el.dataset.r = r;
+      el.dataset.c = c;
+    }
+  }
+
+  // ========= UI 更新 =========
+  function updateUI() {
+    document.getElementById('steps-value').textContent = gameState.steps;
+    document.getElementById('score-value').textContent = gameState.score;
+    document.getElementById('level-number').textContent = gameState.level;
+
+    // 星级
+    const target = gameState.targetScore;
+    const pct = Math.min(100, (gameState.score / (target * 2.5)) * 100);
+    document.getElementById('star-bar-fill').style.width = pct + '%';
+
+    const stars = document.querySelectorAll('#stars-display .star');
+    const star1 = gameState.score >= target;
+    const star2 = gameState.score >= target * 1.5;
+    const star3 = gameState.score >= target * 2.5;
+    stars[0].classList.toggle('lit', star1);
+    stars[1].classList.toggle('lit', star2);
+    stars[2].classList.toggle('lit', star3);
+
+    // 道具数量
+    document.getElementById('item-bomb-count').textContent = gameState.items.bomb;
+    document.getElementById('item-hammer-count').textContent = gameState.items.hammer;
+    document.getElementById('item-shuffle-count').textContent = gameState.items.shuffle;
+    document.getElementById('item-hint-count').textContent = gameState.items.hint;
+
+    // 目标显示
+    updateTargetDisplay();
+  }
+
+  function updateTargetDisplay() {
+    const display = document.getElementById('target-display');
+    let html = '';
+    const lvl = getCurrentLevelConfig();
+
+    if (lvl.targetType === 'SCORE') {
+      html = `<div class="target-item"><span class="target-icon" style="background:#ffa94d"></span>${gameState.score}/${gameState.targetScore}</div>`;
+    } else if (lvl.targetType === 'COLLECT') {
+      const remaining = Math.max(0, lvl.collectCount - gameState.collected);
+      html = `<div class="target-item"><span class="target-icon" style="background:${getColorHex(lvl.collectColor)}"></span>收集 ${remaining}</div>`;
+    } else if (lvl.targetType === 'CLEAR') {
+      const remaining = Math.max(0, gameState.iceTotal - gameState.iceBroken);
+      html = `<div class="target-item">🧊 剩余 ${remaining}</div>`;
+    }
+    display.innerHTML = html;
+  }
+
+  function getColorHex(color) {
+    const map = { red: '#ff6b6b', yellow: '#ffd93d', blue: '#6bcbff', green: '#6bcf7f', purple: '#c56bff', orange: '#ffa94d' };
+    return map[color] || '#888';
+  }
+
+  function getCurrentLevelConfig() {
+    return LEVELS[gameState.level - 1] || LEVELS[0];
+  }
+
+  // ========= 游戏流程 =========
+  function startLevel(levelNum) {
+    const config = LEVELS[levelNum - 1];
+    if (!config) return;
+
+    gameState.level = levelNum;
+    gameState.score = 0;
+    gameState.steps = config.steps;
+    gameState.maxSteps = config.steps;
+    gameState.targetScore = config.targetScore;
+    gameState.targetType = config.targetType;
+    gameState.selected = null;
+    gameState.isAnimating = false;
+    gameState.combo = 0;
+    gameState.gameOver = false;
+    gameState.paused = false;
+    gameState.activeItem = null;
+    gameState.collected = 0;
+    gameState.iceBroken = 0;
+    gameState.iceTotal = (config.obstacles && config.obstacles.ice) || 0;
+    gameState.items = { bomb: 3, hammer: 2, shuffle: 2, hint: 3 };
+
+    gameState.board = generateBoard(config);
+
+    // 切换界面
+    try {
+      document.getElementById('start-screen').classList.remove('active');
+      document.getElementById('game-screen').classList.add('active');
+    } catch (e) {
+      console.error('Screen transition error:', e);
+    }
+
+    renderBoard();
+    updateUI();
+    hideAllModals();
+
+    // 入场动画
+    animateBoardEntry();
+  }
+
+  function animateBoardEntry() {
+    const candies = boardEl.querySelectorAll('.candy');
+    candies.forEach((el, i) => {
+      const r = parseInt(el.dataset.r);
+      const c = parseInt(el.dataset.c);
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-50px) scale(0.5)';
+      setTimeout(() => {
+        el.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0) scale(1)';
+      }, (r * 3 + c % 3) * 50);
+    });
+  }
+
+  // ========= 点击/交换逻辑 =========
+  function onCellClick(r, c) {
+    if (gameState.isAnimating || gameState.gameOver || gameState.paused) return;
+
+    // 道具模式
+    if (gameState.activeItem) {
+      useItemOnCell(r, c);
+      return;
+    }
+
+    const candy = gameState.board[r][c];
+    if (!candy) return;
+
+    if (!gameState.selected) {
+      // 选中第一个
+      if (candy.chain) return; // 锁链的不能选
+      gameState.selected = { r, c };
+      const el = getCandyEl(r, c);
+      if (el) el.classList.add('selected');
+    } else {
+      const sr = gameState.selected.r;
+      const sc = gameState.selected.c;
+
+      // 取消选中（点自己）
+      if (sr === r && sc === c) {
+        const el = getCandyEl(r, c);
+        if (el) el.classList.remove('selected');
+        gameState.selected = null;
+        return;
+      }
+
+      // 检查是否相邻
+      const isAdjacent = (Math.abs(sr - r) + Math.abs(sc - c)) === 1;
+
+      if (isAdjacent) {
+        // 尝试交换
+        trySwap(sr, sc, r, c);
+      } else {
+        // 选中新的
+        const oldEl = getCandyEl(sr, sc);
+        if (oldEl) oldEl.classList.remove('selected');
+        if (candy.chain) {
+          gameState.selected = null;
+          return;
+        }
+        gameState.selected = { r, c };
+        const newEl = getCandyEl(r, c);
+        if (newEl) newEl.classList.add('selected');
+      }
+    }
+  }
+
+  function trySwap(r1, c1, r2, c2) {
+    const a = gameState.board[r1][c1];
+    const b = gameState.board[r2][c2];
+    if (!a || !b) return;
+    if (a.chain || b.chain) return;
+
+    gameState.isAnimating = true;
+    clearSelected();
+
+    // 先做交换动画
+    const elA = getCandyEl(r1, c1);
+    const elB = getCandyEl(r2, c2);
+
+    if (elA && elB) {
+      const dx = (c2 - c1) * cellSize;
+      const dy = (r2 - r1) * cellSize;
+      elA.classList.add('swapping');
+      elB.classList.add('swapping');
+      elA.style.transform = `translate(${dx}px, ${dy}px)`;
+      elB.style.transform = `translate(${-dx}px, ${-dy}px)`;
+    }
+
+    setTimeout(() => {
+      // 交换数据
+      [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
+
+      // 检查是否有匹配
+      const matches = findMatches(gameState.board);
+      
+      // 彩虹糖特殊处理：与普通糖交换触发同色全消
+      const hasRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) || (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
+      const bothSpecial = (gameState.board[r1][c1] && gameState.board[r1][c1].type !== CANDY_NORMAL) && (gameState.board[r2][c2] && gameState.board[r2][c2].type !== CANDY_NORMAL);
+      const hasRainbowSwap = hasRainbow && bothSpecial === false; // 彩虹+普通
+      const bothRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) && (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
+
+      if (matches.length > 0 || hasRainbowSwap || bothRainbow) {
+        // 有匹配或彩虹糖触发：扣步数，处理消除
+        gameState.steps--;
+        gameState.combo = 0;
+        renderBoard();
+        
+        if (hasRainbowSwap || bothRainbow) {
+          // 彩虹糖触发：手动添加消除集合
+          processRainbowSwap(r1, c1, r2, c2);
+        } else {
+          processMatches();
+        }
+      } else {
+        // 无匹配：交换回来
+        [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
+
+        if (elA && elB) {
+          elA.style.transform = 'translate(0, 0)';
+          elB.style.transform = 'translate(0, 0)';
+        }
+
+        setTimeout(() => {
+          if (elA) elA.classList.remove('swapping');
+          if (elB) elB.classList.remove('swapping');
+          gameState.isAnimating = false;
+        }, 200);
+      }
+    }, 200);
+  }
+
+  function clearSelected() {
+    if (gameState.selected) {
+      const el = getCandyEl(gameState.selected.r, gameState.selected.c);
+      if (el) el.classList.remove('selected');
+    }
+    gameState.selected = null;
+  }
+
+  // ========= 彩虹糖交换触发 =========
+  function processRainbowSwap(r1, c1, r2, c2) {
+    const a = gameState.board[r1][c1];
+    const b = gameState.board[r2][c2];
+    
+    const toRemove = new Set();
+    toRemove.add(r1 + ',' + c1);
+    toRemove.add(r2 + ',' + c2);
+    
+    if (a.type === CANDY_RAINBOW && b.type === CANDY_RAINBOW) {
+      // 双彩虹：全屏清屏
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (gameState.board[r][c]) toRemove.add(r + ',' + c);
+        }
+      }
+      addScore(5000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+    } else if (a.type === CANDY_RAINBOW) {
+      // 彩虹糖 + 普通糖：消除b的颜色
+      triggerRainbow(b.color, toRemove);
+      addScore(3000, [r1, c1]);
+    } else if (b.type === CANDY_RAINBOW) {
+      triggerRainbow(a.color, toRemove);
+      addScore(3000, [r2, c2]);
+    }
+    
+    // 处理收集目标
+    const lvl = getCurrentLevelConfig();
+    if (lvl.targetType === 'COLLECT' && lvl.collectColor) {
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const candy = gameState.board[r][c];
+        if (candy && candy.color === lvl.collectColor) {
+          gameState.collected = (gameState.collected || 0) + 1;
+          addScore(200, [r, c]);
+        }
+      }
+    }
+    
+    animateRemoval(toRemove, () => {
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+          gameState.board[r][c].ice = 0;
+          gameState.iceBroken++;
+          addScore(300, [r, c]);
+        }
+        gameState.board[r][c] = null;
+      }
+      applyGravityAndFill(() => {
+        renderBoard();
+        updateUI();
+        setTimeout(() => {
+          processMatches();
+        }, 100);
+      });
+    });
+  }
+
+  // ========= 匹配处理（核心） =========
+  function processMatches() {
+    const matches = findMatches(gameState.board);
+    if (matches.length === 0) {
+      // 无匹配，下落完成后检查
+      onCascadeComplete();
+      return;
+    }
+
+    gameState.combo++;
+
+    if (gameState.combo > 1) {
+      showCombo(gameState.combo);
+    }
+
+    // 收集要消除的格子
+    const toRemove = new Set();
+    const specialSpawns = []; // {r, c, color, type} - 在消除位置生成特殊糖果
+
+    for (const match of matches) {
+      // 计分
+      const comboMult = Math.min(5, 1 + (gameState.combo - 1) * 0.5);
+      let baseScore = 60 * match.length;
+      if (match.shape === 'four') baseScore = 120 * match.length;
+      if (match.shape === 'five') baseScore = 180 * match.length;
+      if (match.shape === 'TL') baseScore = 150 * match.length;
+
+      addScore(Math.floor(baseScore * comboMult), match.cells[0]);
+
+      // 确定生成什么特殊糖果（只在匹配的中间/某个位置生成一个）
+      let spawnType = null;
+      let spawnPos = null;
+
+      if (match.shape === 'five') {
+        spawnType = CANDY_RAINBOW;
+        // 5连的中间位置
+        const midIdx = Math.floor(match.cells.length / 2);
+        spawnPos = match.cells[midIdx];
+      } else if (match.shape === 'four') {
+        spawnType = match.direction === 'h' ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+        // 4连的中间位置
+        const midIdx = Math.floor(match.cells.length / 2);
+        spawnPos = match.cells[midIdx];
+      } else if (match.shape === 'TL') {
+        spawnType = CANDY_WRAPPED;
+        // T/L型的交点（找出现次数最多的格子即交点）
+        const cellCount = {};
+        for (const [r, c] of match.cells) {
+          const key = r + ',' + c;
+          cellCount[key] = (cellCount[key] || 0) + 1;
+        }
+        let maxCount = 0;
+        let maxKey = null;
+        for (const k in cellCount) {
+          if (cellCount[k] > maxCount) {
+            maxCount = cellCount[k];
+            maxKey = k;
+          }
+        }
+        if (maxKey) {
+          const [r, c] = maxKey.split(',').map(Number);
+          spawnPos = [r, c];
+        } else {
+          spawnPos = match.cells[0];
+        }
+      }
+
+      if (spawnType && spawnPos) {
+        specialSpawns.push({ r: spawnPos[0], c: spawnPos[1], color: match.color, type: spawnType });
+      }
+
+      // 加入消除集合
+      for (const [r, c] of match.cells) {
+        toRemove.add(r + ',' + c);
+      }
+    }
+
+    // 检查特殊糖果触发（被消除的特殊糖果会触发额外效果）
+    const extraRemoves = new Set();
+    for (const key of toRemove) {
+      const [r, c] = key.split(',').map(Number);
+      const candy = gameState.board[r][c];
+      if (candy && candy.type !== CANDY_NORMAL && candy.type !== CANDY_RAINBOW) {
+        triggerSpecial(r, c, candy, extraRemoves);
+      }
+    }
+
+    // 彩虹糖触发：被消除时消除所有同色
+    const rainbowTriggers = [];
+    for (const key of toRemove) {
+      const [r, c] = key.split(',').map(Number);
+      const candy = gameState.board[r][c];
+      if (candy && candy.type === CANDY_RAINBOW) {
+        rainbowTriggers.push({ r, c, color: candy.color });
+      }
+    }
+    for (const rt of rainbowTriggers) {
+      triggerRainbow(rt.color, extraRemoves);
+      addScore(3000, [rt.r, rt.c]);
+    }
+
+    // 组合检测：如果两个相邻的特殊糖果同时被消除
+    checkCombos(toRemove, extraRemoves);
+
+    // 合并
+    for (const k of extraRemoves) toRemove.add(k);
+
+    // 处理收集目标
+    const lvl = getCurrentLevelConfig();
+    if (lvl.targetType === 'COLLECT' && lvl.collectColor) {
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const candy = gameState.board[r][c];
+        if (candy && candy.color === lvl.collectColor) {
+          gameState.collected = (gameState.collected || 0) + 1;
+          addScore(200, [r, c]);
+        }
+      }
+    }
+
+    // 播放消除动画
+    animateRemoval(toRemove, () => {
+      // 真正消除格子
+      const iceOnlyCells = new Set(); // 只碎冰、保留糖果的格子
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const candy = gameState.board[r][c];
+        if (candy && candy.ice > 0) {
+          candy.ice = 0;
+          gameState.iceBroken++;
+          addScore(300, [r, c]);
+          // 冰块下如果是普通糖被匹配消除，糖也消失；如果是特殊糖触发过了也消失
+          // 但如果这格只是因为相邻冰块才被波及（extra from special），糖保留
+          // 简化：匹配消除连冰带糖一起走；特殊触发波及的如果有冰只碎冰
+          // 这里简单判断：在原始匹配集合中的糖+冰一起消
+        }
+      }
+      
+      // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
+      // 特殊触发波及的格子有冰只碎冰
+      const matchCells = new Set();
+      for (const m of matches) {
+        for (const [r, c] of m.cells) {
+          matchCells.add(r + ',' + c);
+        }
+      }
+      
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const candy = gameState.board[r][c];
+        if (!candy) continue;
+        // 锁链：参与消除则解锁
+        if (candy.chain) {
+          candy.chain = false;
+        }
+        // 原始匹配消除：糖果消失
+        if (matchCells.has(key)) {
+          gameState.board[r][c] = null;
+        } else {
+          // 特殊波及：有冰只碎冰，糖保留
+          if (candy.ice <= 0) {
+            // 没冰的波及格也消除
+            gameState.board[r][c] = null;
+          }
+          // 有冰的：上面已碎冰，糖保留 → 不null
+        }
+      }
+
+      // 生成特殊糖果（在消除位置）
+      for (const spawn of specialSpawns) {
+        if (!gameState.board[spawn.r][spawn.c]) {
+          gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
+        }
+      }
+
+      // 下落 + 填充
+      applyGravityAndFill(() => {
+        // 连锁检测
+        renderBoard();
+        updateUI();
+        setTimeout(() => {
+          processMatches();
+        }, 100);
+      });
+    });
+  }
+
+  // 特殊糖果触发效果
+  function triggerSpecial(r, c, candy, extraSet) {
+    if (candy.type === CANDY_STRIPED_H) {
+      // 横向条纹=消整行
+      for (let cc = 0; cc < BOARD_SIZE; cc++) {
+        if (gameState.board[r][cc]) extraSet.add(r + ',' + cc);
+      }
+      addScore(1000, [r, c]);
+      showBeam(r, c, 'h');
+    } else if (candy.type === CANDY_STRIPED_V) {
+      // 纵向条纹=消整列
+      for (let rr = 0; rr < BOARD_SIZE; rr++) {
+        if (gameState.board[rr][c]) extraSet.add(rr + ',' + c);
+      }
+      addScore(1000, [r, c]);
+      showBeam(r, c, 'v');
+    } else if (candy.type === CANDY_WRAPPED) {
+      // 包装糖：3×3爆炸两次（第一次基础范围，第二次稍大，这里合并为一次大范围+高分）
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const rr = r + dr, cc = c + dc;
+          if (inBounds(rr, cc) && gameState.board[rr][cc]) {
+            extraSet.add(rr + ',' + cc);
+          }
+        }
+      }
+      addScore(2500, [r, c]);
+      showExplosion(r, c);
+      // 第二次爆炸标记（延迟视觉效果已通过计分体现）
+      setTimeout(() => showExplosion(r, c), 200);
+    }
+  }
+
+  function triggerRainbow(color, extraSet) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const candy = gameState.board[r][c];
+        if (candy && candy.color === color) {
+          extraSet.add(r + ',' + c);
+        }
+      }
+    }
+  }
+
+  // 道具组合检测
+  function checkCombos(toRemove, extraSet) {
+    const removedList = Array.from(toRemove).map(k => {
+      const [r, c] = k.split(',').map(Number);
+      return { r, c, candy: gameState.board[r][c] };
+    }).filter(x => x.candy);
+
+    // 找相邻的特殊糖果对
+    for (let i = 0; i < removedList.length; i++) {
+      for (let j = i + 1; j < removedList.length; j++) {
+        const a = removedList[i];
+        const b = removedList[j];
+        const dist = Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+        if (dist !== 1) continue;
+        if (a.candy.type === CANDY_NORMAL && b.candy.type === CANDY_NORMAL) continue;
+
+        // 两个都是特殊糖果 → 组合效果
+        const aSpecial = a.candy.type !== CANDY_NORMAL;
+        const bSpecial = b.candy.type !== CANDY_NORMAL;
+
+        if (aSpecial && bSpecial) {
+          applyCombo(a, b, extraSet);
+        }
+      }
+    }
+  }
+
+  function applyCombo(a, b, extraSet) {
+    const types = [a.candy.type, b.candy.type].sort();
+    const centerR = Math.floor((a.r + b.r) / 2);
+    const centerC = Math.floor((a.c + b.c) / 2);
+
+    // 条纹 + 条纹 = 十字
+    if ((types[0].startsWith('striped') && types[1].startsWith('striped'))) {
+      for (let cc = 0; cc < BOARD_SIZE; cc++) {
+        if (gameState.board[a.r] && gameState.board[a.r][cc]) extraSet.add(a.r + ',' + cc);
+      }
+      for (let rr = 0; rr < BOARD_SIZE; rr++) {
+        if (gameState.board[rr] && gameState.board[rr][b.c]) extraSet.add(rr + ',' + b.c);
+      }
+      addScore(2000, [centerR, centerC]);
+      showBeam(a.r, a.c, 'h');
+      showBeam(b.r, b.c, 'v');
+    }
+    // 条纹 + 彩虹 = 该色全变条纹
+    else if (types.includes('rainbow') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
+      const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
+      const stripedCandy = a.candy.type.startsWith('striped') ? a.candy : b.candy;
+      const color = rainbowCandy.color;
+      // 将该色所有普通糖变条纹并触发
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const candy = gameState.board[r][c];
+          if (candy && candy.color === color) {
+            candy.type = Math.random() < 0.5 ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+            extraSet.add(r + ',' + c);
+          }
+        }
+      }
+      addScore(3000, [centerR, centerC]);
+    }
+    // 包装 + 包装 = 双5×5爆炸
+    else if (types[0] === 'wrapped' && types[1] === 'wrapped') {
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const rr = centerR + dr, cc = centerC + dc;
+          if (inBounds(rr, cc) && gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+        }
+      }
+      addScore(3000, [centerR, centerC]);
+      showExplosion(centerR, centerC);
+    }
+    // 条纹 + 包装 = 3行+3列
+    else if (types.includes('wrapped') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
+      for (let dr = -1; dr <= 1; dr++) {
+        const rr = centerR + dr;
+        if (rr >= 0 && rr < BOARD_SIZE) {
+          for (let cc = 0; cc < BOARD_SIZE; cc++) {
+            if (gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+          }
+        }
+      }
+      for (let dc = -1; dc <= 1; dc++) {
+        const cc = centerC + dc;
+        if (cc >= 0 && cc < BOARD_SIZE) {
+          for (let rr = 0; rr < BOARD_SIZE; rr++) {
+            if (gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+          }
+        }
+      }
+      addScore(2500, [centerR, centerC]);
+    }
+    // 彩虹 + 彩虹 = 清屏
+    else if (types[0] === 'rainbow' && types[1] === 'rainbow') {
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (gameState.board[r][c]) extraSet.add(r + ',' + c);
+        }
+      }
+      addScore(5000, [centerR, centerC]);
+    }
+    // 包装 + 彩虹 = 该色全变包装
+    else if (types.includes('rainbow') && types.includes('wrapped')) {
+      const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
+      const color = rainbowCandy.color;
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const candy = gameState.board[r][c];
+          if (candy && candy.color === color) {
+            candy.type = CANDY_WRAPPED;
+            extraSet.add(r + ',' + c);
+          }
+        }
+      }
+      addScore(4000, [centerR, centerC]);
+    }
+  }
+
+  // ========= 动画效果 =========
+  function animateRemoval(toRemove, callback) {
+    let count = 0;
+    const keys = Array.from(toRemove);
+    for (const key of keys) {
+      const [r, c] = key.split(',').map(Number);
+      const el = getCandyEl(r, c);
+      if (el) {
+        el.classList.add('removing');
+        count++;
+      }
+    }
+
+    const delay = count > 0 ? 300 : 0;
+    setTimeout(callback, delay);
+  }
+
+  function applyGravityAndFill(callback) {
+    // 重力：每列从下往上数空位，上方下落
+    const moves = []; // {fromR, fromC, toR, toC, id}
+
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      let writePos = BOARD_SIZE - 1;
+      for (let r = BOARD_SIZE - 1; r >= 0; r--) {
+        if (gameState.board[r][c]) {
+          if (r !== writePos) {
+            moves.push({ fromR: r, fromC: c, toR: writePos, toC: c, id: gameState.board[r][c].id });
+            gameState.board[writePos][c] = gameState.board[r][c];
+            gameState.board[r][c] = null;
+          }
+          writePos--;
+        }
+      }
+
+      // 顶部填充新糖果
+      for (let r = writePos; r >= 0; r--) {
+        const color = COLORS[rand(COLORS.length)];
+        gameState.board[r][c] = createCandy(color, CANDY_NORMAL);
+        moves.push({ fromR: r - (writePos + 1), fromC: c, toR: r, toC: c, id: gameState.board[r][c].id, isNew: true });
+      }
+    }
+
+    // 播放下落动画
+    renderBoard();
+
+    const candies = boardEl.querySelectorAll('.candy');
+    candies.forEach(el => {
+      const r = parseInt(el.dataset.r);
+      const c = parseInt(el.dataset.c);
+      // 初始位置在上方
+      const move = moves.find(m => m.toR === r && m.toC === c && m.id == el.dataset.id);
+      if (move) {
+        const dropRows = move.isNew ? (move.toR + 1) : (move.toR - move.fromR);
+        el.style.transform = `translateY(-${dropRows * cellSize}px)`;
+        el.classList.add('dropping');
+        // 强制 reflow
+        el.offsetHeight;
+        el.style.transform = 'translateY(0)';
+      }
+    });
+
+    setTimeout(callback, 380);
+  }
+
+  function onCascadeComplete() {
+    gameState.combo = 0;
+    gameState.isAnimating = false;
+    updateUI();
+
+    // 检查胜利
+    if (checkWin()) {
+      onWin();
+      return;
+    }
+
+    // 检查失败
+    if (gameState.steps <= 0) {
+      onLose();
+      return;
+    }
+
+    // 检查死局
+    if (!hasPossibleMoves(gameState.board)) {
+      shuffleBoard(gameState.board);
+      renderBoard();
+      showComboText('重新排列！');
+      // 再检查一次
+      if (!hasPossibleMoves(gameState.board)) {
+        // 极端情况再shuffle一次
+        shuffleBoard(gameState.board);
+        renderBoard();
+      }
+    }
+  }
+
+  // ========= 胜负判定 =========
+  function checkWin() {
+    const lvl = getCurrentLevelConfig();
+    if (lvl.targetType === 'SCORE') {
+      return gameState.score >= gameState.targetScore;
+    } else if (lvl.targetType === 'COLLECT') {
+      return gameState.collected >= lvl.collectCount;
+    } else if (lvl.targetType === 'CLEAR') {
+      return gameState.iceBroken >= gameState.iceTotal;
+    }
+    return false;
+  }
+
+  function onWin() {
+    gameState.gameOver = true;
+    gameState.isAnimating = true;
+
+    // 剩余步数奖励
+    const bonusSteps = gameState.steps;
+    let bonusScore = 0;
+    for (let i = 0; i < bonusSteps; i++) {
+      bonusScore += 200;
+    }
+    gameState.score += bonusScore;
+
+    // 计算星级
+    const target = gameState.targetScore;
+    let stars = 1;
+    if (gameState.score >= target * 2.5) stars = 3;
+    else if (gameState.score >= target * 1.5) stars = 2;
+
+    // 存档
+    const prev = gameState.levelStars[gameState.level] || 0;
+    if (stars > prev) {
+      gameState.levelStars[gameState.level] = stars;
+    }
+    if (gameState.level >= gameState.unlockedLevel && gameState.level < LEVELS.length) {
+      gameState.unlockedLevel = gameState.level + 1;
+    }
+    saveProgress();
+
+    setTimeout(() => {
+      showWinModal(stars, bonusScore);
+    }, 500);
+  }
+
+  function onLose() {
+    gameState.gameOver = true;
+    gameState.isAnimating = true;
+
+    setTimeout(() => {
+      showLoseModal();
+    }, 500);
+  }
+
+  function showWinModal(stars, bonusScore) {
+    const modal = document.getElementById('win-modal');
+    const starsEl = document.querySelectorAll('#result-stars .star');
+    starsEl.forEach((el, i) => {
+      el.classList.remove('lit');
+      if (i < stars) setTimeout(() => el.classList.add('lit'), 300 + i * 200);
+    });
+
+    animateNumber('final-score', gameState.score);
+
+    const lvl = getCurrentLevelConfig();
+    let detail = '';
+    if (bonusSteps > 0) {
+      detail = `剩余步数奖励: +${bonusScore} 分<br>`;
+    }
+    detail += `获得 ${stars} 颗星`;
+    document.getElementById('result-detail').innerHTML = detail;
+
+    // 礼花
+    createConfetti();
+
+    // 下一关按钮
+    const nextBtn = document.getElementById('btn-next');
+    if (gameState.level >= LEVELS.length) {
+      nextBtn.textContent = '全部通关！';
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.6';
+    } else {
+      nextBtn.textContent = '下一关';
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = '1';
+    }
+
+    modal.classList.add('show');
+  }
+
+  function showLoseModal() {
+    const modal = document.getElementById('lose-modal');
+    document.getElementById('lose-score').textContent = gameState.score;
+
+    const lvl = getCurrentLevelConfig();
+    let detail = '';
+    if (lvl.targetType === 'SCORE') {
+      const pct = Math.floor((gameState.score / lvl.targetScore) * 100);
+      detail = `目标: ${lvl.targetScore}分 (完成 ${pct}%)`;
+    } else if (lvl.targetType === 'COLLECT') {
+      detail = `已收集: ${gameState.collected}/${lvl.collectCount}`;
+    } else if (lvl.targetType === 'CLEAR') {
+      detail = `已消除冰块: ${gameState.iceBroken}/${gameState.iceTotal}`;
+    }
+    document.getElementById('lose-detail').textContent = detail;
+
+    modal.classList.add('show');
+  }
+
+  function hideAllModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+  }
+
+  // ========= 分数 & 特效 =========
+  function addScore(points, pos) {
+    gameState.score += points;
+    // 飘字
+    if (pos && pos.length === 2) {
+      showScorePopup(pos[0], pos[1], points);
+    }
+  }
+
+  function showScorePopup(r, c, points) {
+    const cell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+    if (!cell) return;
+    const rect = cell.getBoundingClientRect();
+    const boardRect = boardEl.getBoundingClientRect();
+
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = '+' + points;
+    popup.style.left = (rect.left - boardRect.left + rect.width / 2 - 20) + 'px';
+    popup.style.top = (rect.top - boardRect.top) + 'px';
+    boardEl.appendChild(popup);
+
+    setTimeout(() => popup.remove(), 1000);
+  }
+
+  function showCombo(n) {
+    const el = document.getElementById('combo-text');
+    el.textContent = n + ' 连击！';
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+  }
+
+  function showComboText(text) {
+    const el = document.getElementById('combo-text');
+    el.textContent = text;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+  }
+
+  function showExplosion(r, c) {
+    const cell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+    if (!cell) return;
+    const exp = document.createElement('div');
+    exp.className = 'explosion';
+    exp.style.left = '50%';
+    exp.style.top = '50%';
+    exp.style.width = cellSize + 'px';
+    exp.style.height = cellSize + 'px';
+    exp.style.marginLeft = -cellSize / 2 + 'px';
+    exp.style.marginTop = -cellSize / 2 + 'px';
+    cell.appendChild(exp);
+    setTimeout(() => exp.remove(), 500);
+  }
+
+  function showBeam(r, c, direction) {
+    const cell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+    if (!cell) return;
+    const beam = document.createElement('div');
+    beam.className = 'light-beam ' + (direction === 'h' ? 'horizontal' : 'vertical');
+    cell.appendChild(beam);
+    setTimeout(() => beam.remove(), 500);
+  }
+
+  function createConfetti() {
+    const container = document.getElementById('confetti');
+    container.innerHTML = '';
+    const colors = ['#ff6b6b', '#ffd93d', '#6bcbff', '#6bcf7f', '#c56bff', '#ffa94d'];
+    for (let i = 0; i < 50; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = Math.random() * 0.5 + 's';
+      piece.style.animationDuration = (1.5 + Math.random()) + 's';
+      if (Math.random() > 0.5) piece.style.borderRadius = '50%';
+      container.appendChild(piece);
+    }
+  }
+
+  function animateNumber(id, target) {
+    const el = document.getElementById(id);
+    let current = 0;
+    const duration = 1000;
+    const startTime = Date.now();
+
+    function update() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      current = Math.floor(target * eased);
+      el.textContent = current;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    update();
+  }
+
+  // ========= 道具系统 =========
+  function selectItem(itemName) {
+    if (gameState.isAnimating || gameState.gameOver) return;
+    if (gameState.items[itemName] <= 0) return;
+
+    clearSelected();
+
+    if (gameState.activeItem === itemName) {
+      gameState.activeItem = null;
+    } else {
+      gameState.activeItem = itemName;
+      // 刷新立即生效
+      if (itemName === 'shuffle') {
+        useShuffleItem();
+        return;
+      }
+      if (itemName === 'hint') {
+        useHintItem();
+        return;
+      }
+    }
+    updateItemSlots();
+  }
+
+  function updateItemSlots() {
+    document.querySelectorAll('.item-slot').forEach(slot => {
+      const item = slot.dataset.item;
+      slot.classList.toggle('active', gameState.activeItem === item);
+    });
+  }
+
+  function useItemOnCell(r, c) {
+    const item = gameState.activeItem;
+    if (!item) return;
+    const candy = gameState.board[r][c];
+
+    if (item === 'bomb') {
+      if (!candy) return;
+      gameState.items.bomb--;
+      gameState.isAnimating = true;
+      clearSelected();
+      gameState.activeItem = null;
+      updateItemSlots();
+      updateUI();
+
+      // 3×3 爆炸
+      const toRemove = new Set();
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const rr = r + dr, cc = c + dc;
+          if (inBounds(rr, cc) && gameState.board[rr][cc]) {
+            toRemove.add(rr + ',' + cc);
+          }
+        }
+      }
+      addScore(1000, [r, c]);
+      showExplosion(r, c);
+
+      animateRemoval(toRemove, () => {
+        for (const key of toRemove) {
+          const [rr, cc] = key.split(',').map(Number);
+          if (gameState.board[rr][cc] && gameState.board[rr][cc].ice > 0) {
+            gameState.board[rr][cc].ice = 0;
+            gameState.iceBroken++;
+            addScore(300, [rr, cc]);
+          }
+          gameState.board[rr][cc] = null;
+        }
+        applyGravityAndFill(() => {
+          renderBoard();
+          updateUI();
+          gameState.combo = 0;
+          processMatches();
+        });
+      });
+    } else if (item === 'hammer') {
+      if (!candy) return;
+      gameState.items.hammer--;
+      gameState.isAnimating = true;
+      clearSelected();
+      gameState.activeItem = null;
+      updateItemSlots();
+      updateUI();
+
+      const toRemove = new Set();
+      toRemove.add(r + ',' + c);
+      addScore(500, [r, c]);
+
+      animateRemoval(toRemove, () => {
+        if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+          gameState.board[r][c].ice = 0;
+          gameState.iceBroken++;
+        }
+        gameState.board[r][c] = null;
+        applyGravityAndFill(() => {
+          renderBoard();
+          updateUI();
+          gameState.combo = 0;
+          processMatches();
+        });
+      });
+    }
+  }
+
+  function useShuffleItem() {
+    if (gameState.items.shuffle <= 0) {
+      gameState.activeItem = null;
+      updateItemSlots();
+      return;
+    }
+    gameState.items.shuffle--;
+    gameState.activeItem = null;
+    updateItemSlots();
+
+    shuffleBoard(gameState.board);
+    // 确保有解
+    let attempts = 0;
+    while (!hasPossibleMoves(gameState.board) && attempts < 20) {
+      shuffleBoard(gameState.board);
+      attempts++;
+    }
+    renderBoard();
+    updateUI();
+    showComboText('已刷新！');
+  }
+
+  function useHintItem() {
+    if (gameState.items.hint <= 0) {
+      gameState.activeItem = null;
+      updateItemSlots();
+      return;
+    }
+    gameState.items.hint--;
+    gameState.activeItem = null;
+    updateItemSlots();
+    updateUI();
+
+    const hint = findHint(gameState.board);
+    if (hint) {
+      for (const [r, c] of hint) {
+        const el = getCandyEl(r, c);
+        if (el) {
+          el.classList.add('hint');
+          setTimeout(() => el.classList.remove('hint'), 1600);
+        }
+      }
+    }
+  }
+
+  // ========= 关卡地图 =========
+  function renderLevelMap() {
+    const mapEl = document.getElementById('level-map');
+    mapEl.innerHTML = '<h3>选择关卡</h3>';
+    const nodes = document.createElement('div');
+    nodes.className = 'level-nodes';
+
+    for (let i = 1; i <= LEVELS.length; i++) {
+      const node = document.createElement('div');
+      node.className = 'level-node';
+      const unlocked = i <= gameState.unlockedLevel;
+      const stars = gameState.levelStars[i] || 0;
+
+      if (!unlocked) {
+        node.classList.add('locked');
+        node.innerHTML = `<div>🔒</div>`;
+      } else if (stars > 0) {
+        node.classList.add('completed');
+        node.innerHTML = `<div>${i}</div><div class="node-stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`;
+        node.addEventListener('click', () => startLevel(i));
+      } else {
+        node.classList.add('unlocked');
+        if (i === gameState.unlockedLevel) node.classList.add('current');
+        node.innerHTML = `<div>${i}</div>`;
+        node.addEventListener('click', () => startLevel(i));
+      }
+
+      nodes.appendChild(node);
+    }
+    mapEl.appendChild(nodes);
+  }
+
+  // ========= 事件绑定 =========
+  function bindEvents() {
+    // 棋盘点击
+    let suppressClick = false;
+    boardEl.addEventListener('click', (e) => {
+      if (suppressClick) { suppressClick = false; return; }
+      const cell = e.target.closest('.cell');
+      if (!cell) return;
+      const r = parseInt(cell.dataset.r);
+      const c = parseInt(cell.dataset.c);
+      onCellClick(r, c);
+    });
+
+    // 触屏拖拽支持
+    let touchStart = null;
+    boardEl.addEventListener('touchstart', (e) => {
+      if (gameState.isAnimating || gameState.gameOver || gameState.paused) return;
+      if (gameState.activeItem) return;
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const cell = el && el.closest('.cell');
+      if (cell) {
+        touchStart = {
+          r: parseInt(cell.dataset.r),
+          c: parseInt(cell.dataset.c),
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+      }
+    }, { passive: true });
+
+    boardEl.addEventListener('touchend', (e) => {
+      if (!touchStart) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > 20) {
+        // 拖拽
+        let dr = 0, dc = 0;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          dc = dx > 0 ? 1 : -1;
+        } else {
+          dr = dy > 0 ? 1 : -1;
+        }
+        const tr = touchStart.r + dr;
+        const tc = touchStart.c + dc;
+        if (inBounds(tr, tc)) {
+          onCellClick(touchStart.r, touchStart.c);
+          setTimeout(() => onCellClick(tr, tc), 10);
+        }
+      }
+      touchStart = null;
+    }, { passive: true });
+
+    // 桌面端鼠标拖拽支持
+    let mouseStart = null;
+    let isMouseDragging = false;
+
+    boardEl.addEventListener('mousedown', (e) => {
+      if (gameState.isAnimating || gameState.gameOver || gameState.paused) return;
+      if (gameState.activeItem) return;
+      const cell = e.target.closest('.cell');
+      if (cell) {
+        mouseStart = {
+          r: parseInt(cell.dataset.r),
+          c: parseInt(cell.dataset.c),
+          x: e.clientX,
+          y: e.clientY,
+        };
+        isMouseDragging = false;
+        suppressClick = false;
+      }
+    });
+
+    boardEl.addEventListener('mousemove', (e) => {
+      if (!mouseStart) return;
+      const dx = e.clientX - mouseStart.x;
+      const dy = e.clientY - mouseStart.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 5) {
+        isMouseDragging = true;
+      }
+    });
+
+    boardEl.addEventListener('mouseup', (e) => {
+      if (!mouseStart) return;
+      if (isMouseDragging) {
+        const dx = e.clientX - mouseStart.x;
+        const dy = e.clientY - mouseStart.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > 20) {
+          let dr = 0, dc = 0;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            dc = dx > 0 ? 1 : -1;
+          } else {
+            dr = dy > 0 ? 1 : -1;
+          }
+          const tr = mouseStart.r + dr;
+          const tc = mouseStart.c + dc;
+          if (inBounds(tr, tc)) {
+            onCellClick(mouseStart.r, mouseStart.c);
+            setTimeout(() => onCellClick(tr, tc), 10);
+          }
+        }
+        suppressClick = true;
+      }
+      mouseStart = null;
+      isMouseDragging = false;
+    });
+
+    boardEl.addEventListener('mouseleave', () => {
+      mouseStart = null;
+      isMouseDragging = false;
+    });
+
+    // 道具栏
+    document.querySelectorAll('.item-slot').forEach(slot => {
+      slot.addEventListener('click', () => {
+        selectItem(slot.dataset.item);
+      });
+    });
+
+    // 顶部按钮
+    document.getElementById('btn-back').addEventListener('click', goHome);
+    document.getElementById('btn-pause').addEventListener('click', togglePause);
+
+    // 暂停弹窗
+    document.getElementById('btn-resume').addEventListener('click', togglePause);
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      hideAllModals();
+      startLevel(gameState.level);
+    });
+    document.getElementById('btn-quit').addEventListener('click', goHome);
+
+    // 胜利弹窗
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (gameState.level < LEVELS.length) {
+        hideAllModals();
+        startLevel(gameState.level + 1);
+      }
+    });
+    document.getElementById('btn-retry-win').addEventListener('click', () => {
+      hideAllModals();
+      startLevel(gameState.level);
+    });
+    document.getElementById('btn-home-win').addEventListener('click', goHome);
+
+    // 失败弹窗
+    document.getElementById('btn-retry-lose').addEventListener('click', () => {
+      hideAllModals();
+      startLevel(gameState.level);
+    });
+    document.getElementById('btn-home-lose').addEventListener('click', goHome);
+
+    // 开始界面
+    document.getElementById('btn-continue').addEventListener('click', () => {
+      startLevel(gameState.unlockedLevel);
+    });
+    document.getElementById('btn-help').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.add('show');
+    });
+    document.getElementById('btn-help-close').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.remove('show');
+    });
+
+    // 窗口大小变化
+    window.addEventListener('resize', () => {
+      updateCellSize();
+    });
+
+    // 可见性变化 - 自动暂停
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !gameState.gameOver && document.getElementById('game-screen').classList.contains('active')) {
+        if (!gameState.paused) togglePause();
+      }
+    });
+  }
+
+  function togglePause() {
+    gameState.paused = !gameState.paused;
+    const modal = document.getElementById('pause-modal');
+    if (gameState.paused) {
+      modal.classList.add('show');
+    } else {
+      modal.classList.remove('show');
+    }
+  }
+
+  function goHome() {
+    hideAllModals();
+    gameState.gameOver = true;
+    gameState.paused = false;
+    document.getElementById('game-screen').classList.remove('active');
+    document.getElementById('start-screen').classList.add('active');
+    renderLevelMap();
+  }
+
+  // ========= 缩略图模式 =========
+  function checkThumbnailMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('thumbnail') === '1') {
+      // 定格在菜单态，不自动开局
+      document.getElementById('start-screen').classList.add('active');
+      renderLevelMap();
+    }
+  }
+
+  // ========= 全局入口（供 inline onclick 回退） =========
+  window._startGame = function() {
+    try {
+      startLevel(gameState.unlockedLevel || 1);
+    } catch (e) {
+      console.error('Start game error:', e);
+      alert('启动游戏出错: ' + e.message);
+    }
+  };
+
+  // ========= 初始化 =========
+  function init() {
+    try {
+      loadProgress();
+      bindEvents();
+      renderLevelMap();
+      document.getElementById('start-screen').classList.add('active');
+      checkThumbnailMode();
+    } catch (e) {
+      console.error('Init error:', e);
+      var errDiv = document.createElement('div');
+      errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:10px;z-index:99999;font-size:14px;';
+      errDiv.textContent = '初始化错误: ' + e.message;
+      document.body.appendChild(errDiv);
+    }
+  }
+
+  // 启动
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+
+</script>
+</body>
+</html>
