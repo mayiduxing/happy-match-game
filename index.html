@@ -2362,6 +2362,11 @@ body {
 
   // ========= 匹配处理（核心） =========
   function processMatches() {
+    // 重置动画守卫，防止连锁反应期间守卫超时
+    if (gameState.isAnimating) {
+      startAnimationGuard();
+    }
+
     const matches = findMatches(gameState.board);
     if (matches.length === 0) {
       // 无匹配，下落完成后检查
