@@ -2835,7 +2835,9 @@ body {
   // ========= 事件绑定 =========
   function bindEvents() {
     // 棋盘点击
+    let suppressClick = false;
     boardEl.addEventListener('click', (e) => {
+      if (suppressClick) { suppressClick = false; return; }
       const cell = e.target.closest('.cell');
       if (!cell) return;
       const r = parseInt(cell.dataset.r);
@@ -2885,6 +2887,67 @@ body {
       }
       touchStart = null;
     }, { passive: true });
+
+    // 桌面端鼠标拖拽支持
+    let mouseStart = null;
+    let isMouseDragging = false;
+
+    boardEl.addEventListener('mousedown', (e) => {
+      if (gameState.isAnimating || gameState.gameOver || gameState.paused) return;
+      if (gameState.activeItem) return;
+      const cell = e.target.closest('.cell');
+      if (cell) {
+        mouseStart = {
+          r: parseInt(cell.dataset.r),
+          c: parseInt(cell.dataset.c),
+          x: e.clientX,
+          y: e.clientY,
+        };
+        isMouseDragging = false;
+        suppressClick = false;
+      }
+    });
+
+    boardEl.addEventListener('mousemove', (e) => {
+      if (!mouseStart) return;
+      const dx = e.clientX - mouseStart.x;
+      const dy = e.clientY - mouseStart.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 5) {
+        isMouseDragging = true;
+      }
+    });
+
+    boardEl.addEventListener('mouseup', (e) => {
+      if (!mouseStart) return;
+      if (isMouseDragging) {
+        const dx = e.clientX - mouseStart.x;
+        const dy = e.clientY - mouseStart.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > 20) {
+          let dr = 0, dc = 0;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            dc = dx > 0 ? 1 : -1;
+          } else {
+            dr = dy > 0 ? 1 : -1;
+          }
+          const tr = mouseStart.r + dr;
+          const tc = mouseStart.c + dc;
+          if (inBounds(tr, tc)) {
+            onCellClick(mouseStart.r, mouseStart.c);
+            setTimeout(() => onCellClick(tr, tc), 10);
+          }
+        }
+        suppressClick = true;
+      }
+      mouseStart = null;
+      isMouseDragging = false;
+    });
+
+    boardEl.addEventListener('mouseleave', () => {
+      mouseStart = null;
+      isMouseDragging = false;
+    });
 
     // 道具栏
     document.querySelectorAll('.item-slot').forEach(slot => {
