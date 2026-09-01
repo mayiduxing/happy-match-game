@@ -24,9 +24,9 @@
   --candy-green: #6bcf7f;
   --candy-purple: #c56bff;
   --candy-orange: #ffa94d;
-  --bg-gradient: linear-gradient(180deg, #ffe0f0 0%, #fff5e0 50%, #e0f7ff 100%);
-  --board-bg: rgba(255, 255, 255, 0.85);
-  --cell-bg: rgba(255, 255, 255, 0.5);
+  --bg-gradient: linear-gradient(180deg, #ffd6e8 0%, #fff5c8 50%, #c2e8ff 100%);
+  --board-bg: rgba(255, 255, 255, 0.95);
+  --cell-bg: rgba(255, 255, 255, 0.75);
   --text-dark: #4a3b5c;
   --text-light: #fff;
   --primary: #ff6b9d;
@@ -114,19 +114,17 @@ body {
 
 .candy-float {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  opacity: 0.3;
+  opacity: 0.12;
   animation: floatUp 8s ease-in-out infinite;
 }
 
-.candy-float.c1 { background: var(--candy-red); top: 10%; left: 10%; animation-delay: 0s; }
-.candy-float.c2 { background: var(--candy-yellow); top: 20%; right: 15%; animation-delay: 1.5s; width: 40px; height: 40px; }
-.candy-float.c3 { background: var(--candy-blue); top: 40%; left: 8%; animation-delay: 3s; width: 60px; height: 60px; }
-.candy-float.c4 { background: var(--candy-green); top: 60%; right: 10%; animation-delay: 2s; }
-.candy-float.c5 { background: var(--candy-purple); top: 75%; left: 20%; animation-delay: 4s; width: 45px; height: 45px; }
-.candy-float.c6 { background: var(--candy-orange); top: 85%; right: 25%; animation-delay: 1s; }
+.candy-float.c1 { background: var(--candy-red); top: 8%; left: 6%; animation-delay: 0s; }
+.candy-float.c2 { background: var(--candy-yellow); top: 18%; right: 8%; animation-delay: 1.5s; width: 28px; height: 28px; }
+.candy-float.c3 { background: var(--candy-blue); top: 75%; left: 10%; animation-delay: 3s; width: 32px; height: 32px; }
+.candy-float.c4 { background: var(--candy-green); top: 82%; right: 12%; animation-delay: 2s; width: 28px; height: 28px; }
 
 @keyframes floatUp {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -178,10 +176,10 @@ body {
   flex-direction: column;
   gap: 16px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.96);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.2);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.25), 0 2px 8px rgba(0,0,0,0.06);
+  border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
 .level-map h3 {
@@ -345,9 +343,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   position: relative;
   z-index: 2;
 }
@@ -393,7 +390,7 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.95);
   padding: 2px 8px;
   border-radius: 12px;
 }
@@ -411,7 +408,7 @@ body {
   align-items: center;
   justify-content: space-around;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.92);
   gap: 8px;
 }
 
@@ -760,63 +757,136 @@ body {
   background: rgba(255,255,255,0.5);
 }
 
-/* 障碍物 */
+/* 障碍物 - 冰块：立体冰晶包裹效果，与遮罩残留彻底区分 */
 .ice {
+  position: absolute;
+  top: -8%;
+  left: -8%;
+  width: 116%;
+  height: 116%;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 5;
+
+  /* 多层背景：冰裂纹 + 冰晶折射 + 基础冰蓝 */
+  background:
+    /* 对角冰裂纹 1 */
+    repeating-linear-gradient(72deg, transparent 0px, transparent 7px, rgba(255,255,255,0.35) 7px, rgba(255,255,255,0.35) 8px, transparent 8px, transparent 22px),
+    /* 对角冰裂纹 2 */
+    repeating-linear-gradient(162deg, transparent 0px, transparent 11px, rgba(200,240,255,0.4) 11px, rgba(200,240,255,0.4) 12px, transparent 12px, transparent 26px),
+    /* 冰晶高光点 */
+    radial-gradient(ellipse 45% 28% at 22% 18%, rgba(255,255,255,0.95) 0%, transparent 55%),
+    radial-gradient(ellipse 25% 18% at 78% 72%, rgba(255,255,255,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse 20% 15% at 65% 25%, rgba(220,250,255,0.45) 0%, transparent 45%),
+    /* 基础冰蓝色 */
+    linear-gradient(145deg, rgba(170,235,255,0.6) 0%, rgba(130,205,245,0.5) 40%, rgba(150,215,250,0.55) 60%, rgba(120,200,240,0.5) 100%);
+
+  /* 立体冰块边框 */
+  border: 3px solid rgba(210, 245, 255, 0.9);
+  border-top-color: rgba(235, 250, 255, 0.95);
+  border-left-color: rgba(225, 248, 255, 0.92);
+
+  /* 多层阴影：外发光 + 深度内阴影 */
+  box-shadow:
+    0 0 10px 3px rgba(140, 215, 255, 0.45),
+    0 4px 8px rgba(80, 160, 210, 0.25),
+    inset 0 0 18px rgba(255,255,255,0.35),
+    inset 0 2px 10px rgba(255,255,255,0.55),
+    inset 0 -2px 10px rgba(90, 170, 220, 0.3);
+
+  /* 轻微闪光呼吸 */
+  animation: iceShine 2.4s ease-in-out infinite;
+}
+
+/* 冰块主高光（棱镜反光） */
+.ice::before {
+  content: '';
+  position: absolute;
+  top: 6%;
+  left: 8%;
+  width: 28%;
+  height: 12%;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  transform: rotate(-22deg);
+  filter: blur(0.8px);
+}
+
+/* 冰块右下角小冰晶碎片 */
+.ice::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  width: 12%;
+  height: 12%;
+  background: rgba(255,255,255,0.65);
+  border-radius: 40% 60% 50% 50%;
+  transform: rotate(40deg);
+  filter: blur(0.3px);
+}
+
+@keyframes iceShine {
+  0%, 100% {
+    box-shadow:
+      0 0 10px 3px rgba(140, 215, 255, 0.45),
+      0 4px 8px rgba(80, 160, 210, 0.25),
+      inset 0 0 18px rgba(255,255,255,0.35),
+      inset 0 2px 10px rgba(255,255,255,0.55),
+      inset 0 -2px 10px rgba(90, 170, 220, 0.3);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 16px 5px rgba(170, 230, 255, 0.7),
+      0 4px 10px rgba(80, 160, 210, 0.3),
+      inset 0 0 24px rgba(255,255,255,0.5),
+      inset 0 2px 14px rgba(255,255,255,0.75),
+      inset 0 -2px 10px rgba(90, 170, 220, 0.35);
+    filter: brightness(1.08);
+  }
+}
+
+/* 锁链：立体金属链环交叉包裹 */
+.chain {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(150, 220, 255, 0.5);
-  border: 2px solid rgba(200, 240, 255, 0.8);
-  border-radius: 10px;
-  pointer-events: none;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
-  z-index: 5;
-}
-
-.ice::before {
-  content: '';
-  position: absolute;
-  top: 20%;
-  left: 15%;
-  width: 35%;
-  height: 15%;
-  background: rgba(255,255,255,0.7);
-  border-radius: 50%;
-  transform: rotate(-20deg);
-}
-
-.chain {
-  position: absolute;
-  top: 5%;
-  left: 5%;
-  width: 90%;
-  height: 90%;
   pointer-events: none;
   z-index: 6;
+  overflow: hidden;
+  border-radius: 50%;
 }
 
 .chain::before,
 .chain::after {
   content: '';
   position: absolute;
-  background: linear-gradient(90deg, #888 0%, #ccc 50%, #888 100%);
-  border-radius: 3px;
+  width: 150%;
+  height: 28%;
+  top: 36%;
+  left: -25%;
+  border: 4px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.35);
 }
 
+/* 锁链环 1 */
 .chain::before {
-  width: 100%;
-  height: 6px;
-  top: 50%;
-  transform: translateY(-50%) rotate(30deg);
+  border-top-color: #c0c0c0;
+  border-bottom-color: #707070;
+  background: linear-gradient(180deg, rgba(180,180,180,0.3) 0%, transparent 40%, transparent 60%, rgba(100,100,100,0.25) 100%);
+  transform: rotate(38deg);
 }
 
+/* 锁链环 2 */
 .chain::after {
-  width: 100%;
-  height: 6px;
-  top: 50%;
-  transform: translateY(-50%) rotate(-30deg);
+  border-top-color: #d8d8d8;
+  border-bottom-color: #808080;
+  background: linear-gradient(180deg, rgba(200,200,200,0.25) 0%, transparent 40%, transparent 60%, rgba(110,110,110,0.2) 100%);
+  transform: rotate(-38deg);
 }
 
 /* 消除动画 - 飞升向目标栏后消失 */
@@ -860,20 +930,42 @@ body {
   100% { transform: translate(var(--px), var(--py)) scale(0) rotate(360deg); opacity: 0; }
 }
 
-/* 下落动画 */
+/* 下落动画：重力加速 + 轻微回弹 */
 .candy.dropping {
-  transition: transform var(--drop-duration, 0.35s) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform var(--drop-duration, 1.4s) cubic-bezier(0.5, 0, 0.5, 1.4);
 }
 
 /* 新棋子从顶部滑入 */
 .candy.new-spawn {
-  animation: newSpawn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: newSpawn 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes newSpawn {
   0%   { transform: scale(0.5); opacity: 0.6; filter: brightness(1.3); }
   60%  { transform: scale(1.1); opacity: 1;   filter: brightness(1.0); }
   100% { transform: scale(1.0); opacity: 1;   filter: brightness(1.0); }
+}
+
+/* 特效糖原地生成：消除后先在原地展示，上方棋子再落下 */
+.candy.special-spawn {
+  animation: specialSpawn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes specialSpawn {
+  0%   { transform: scale(0); opacity: 0; filter: brightness(1.6); }
+  70%  { transform: scale(1.15); opacity: 1; filter: brightness(1.2); }
+  100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+}
+
+/* 冰块解冻碎裂动画（新冰冻规则：解冻只碎冰、糖保留） */
+.ice.ice-break {
+  animation: iceBreak 0.45s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes iceBreak {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.6); }
 }
 
 /* 交换动画 */
@@ -960,9 +1052,8 @@ body {
   display: flex;
   justify-content: space-around;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
 }
 
 .item-slot {
@@ -1349,8 +1440,6 @@ body {
         <div class="candy-float c2"></div>
         <div class="candy-float c3"></div>
         <div class="candy-float c4"></div>
-        <div class="candy-float c5"></div>
-        <div class="candy-float c6"></div>
       </div>
       <div class="start-content">
         <div class="game-logo">
@@ -1603,7 +1692,9 @@ body {
   // ========= 动画队列：支持点击快进 =========
   let _animTimers = [];
   function _queueStep(callback, delay) {
-    const useDelay = gameState.fastForward ? Math.min(30, delay) : delay;
+    // 短延迟（< 500ms）通常是 UI 闪烁/小动画，可快进；长延迟（≥ 500ms）一般是等 CSS 动画完成，
+    // 不能被快进压缩，否则会在 CSS 动画还在 0~50% 帧时就推进下一步，导致"扁棋子"和棋子视觉重叠。
+    const useDelay = (gameState.fastForward && delay < 500) ? Math.min(30, delay) : delay;
     const item = { callback: callback, timer: null };
     item.timer = setTimeout(() => {
       _animTimers = _animTimers.filter(function(x) { return x !== item; });
@@ -2098,11 +2189,11 @@ body {
         if (!candy) { c++; continue; }
         const color = candy.color;
         const type = candy.type;
-        // 彩虹糖不参与同色匹配检测
-        if (type === CANDY_RAINBOW) { c++; continue; }
+        // 彩虹糖、冰冻糖果不参与同色匹配检测（未解冻的冰冻方块无法被消除）
+        if (type === CANDY_RAINBOW || candy.ice > 0) { c++; continue; }
 
         let end = c + 1;
-        while (end < BOARD_SIZE && board[r][end] && board[r][end].color === color && board[r][end].type !== CANDY_RAINBOW) {
+        while (end < BOARD_SIZE && board[r][end] && board[r][end].color === color && board[r][end].type !== CANDY_RAINBOW && !(board[r][end].ice > 0)) {
           end++;
         }
         const len = end - c;
@@ -2123,10 +2214,11 @@ body {
         if (!candy) { r++; continue; }
         const color = candy.color;
         const type = candy.type;
-        if (type === CANDY_RAINBOW) { r++; continue; }
+        // 彩虹糖、冰冻糖果不参与同色匹配检测（未解冻的冰冻方块无法被消除）
+        if (type === CANDY_RAINBOW || candy.ice > 0) { r++; continue; }
 
         let end = r + 1;
-        while (end < BOARD_SIZE && board[end][c] && board[end][c].color === color && board[end][c].type !== CANDY_RAINBOW) {
+        while (end < BOARD_SIZE && board[end][c] && board[end][c].color === color && board[end][c].type !== CANDY_RAINBOW && !(board[end][c].ice > 0)) {
           end++;
         }
         const len = end - r;
@@ -2283,6 +2375,16 @@ body {
   // ========= 渲染 =========
   function sanitizeCandyElement(el) {
     if (!el || !el.classList.contains('candy')) return;
+    // 动画进行中的棋子不做清理：清理会移除 dropping/swapping 类并重置 inline transform，
+    // 把慢速下落过渡（--drop-duration）截断为基础 0.2s 过渡——这是"下落速度调不慢"的根因。
+    // MutationObserver(appendChild 移动棋子) 与 200ms HealthCheck 都会在下落启动的同一帧内
+    // 触发本函数；动画结束后（_queueStep 清理/renderBoard 重建）本函数照常生效。
+    // removing 也跳过：.removing 元素由 candyRemove 动画 forwards 收尾保持隐形，清理会复活成"扁棋子"。
+    if (el.classList.contains('dropping') || el.classList.contains('swapping') ||
+        el.classList.contains('removing') || el.classList.contains('pre-clear') ||
+        el.classList.contains('special-spawn')) {
+      return;
+    }
     // 清除所有可能导致遮罩的 inline 样式
     el.style.opacity = '';
     el.style.filter = '';
@@ -2828,17 +2930,8 @@ body {
       
       animateRemoval(toRemove, () => {
         try {
-          for (const key of toRemove) {
-            const [r, c] = key.split(',').map(Number);
-            if (gameState.board[r] && gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-              gameState.board[r][c].ice = 0;
-              gameState.iceBroken++;
-              addScore(300, [r, c]);
-            }
-            if (gameState.board[r]) {
-              gameState.board[r][c] = null;
-            }
-          }
+          // 新冰冻规则：冰冻格被特效击中只解冻（糖保留）；实际消除格的相邻冰冻格解冻
+          resolveRemovals(toRemove);
           applyGravityAndFill(() => {
             try {
               renderBoard();
@@ -2907,17 +3000,8 @@ body {
 
       animateRemoval(toRemove, () => {
         try {
-          for (const key of toRemove) {
-            const [r, c] = key.split(',').map(Number);
-            if (gameState.board[r] && gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-              gameState.board[r][c].ice = 0;
-              gameState.iceBroken++;
-              addScore(300, [r, c]);
-            }
-            if (gameState.board[r]) {
-              gameState.board[r][c] = null;
-            }
-          }
+          // 新冰冻规则：冰冻格被特效击中只解冻（糖保留）；实际消除格的相邻冰冻格解冻
+          resolveRemovals(toRemove);
           applyGravityAndFill(() => {
             try {
               renderBoard();
@@ -2952,6 +3036,64 @@ body {
   }
 
   // ========= 匹配处理（核心） =========
+  // ========= 冰冻规则（重做）=========
+  // 未解冻的冰冻方块不参与同色匹配，无法被消除；
+  // 解冻条件：① 相邻格子有棋子被消除；② 被特效（条纹/包装/彩虹）或道具（炸弹/锤子）击中。
+  // 解冻只去掉冰层、糖果保留，需后续匹配才能消除。解冻计入破冰数（过关条件）。
+
+  function unfreezeCell(r, c) {
+    const candy = gameState.board[r] && gameState.board[r][c];
+    if (!candy || candy.ice <= 0) return false;
+    candy.ice = 0;
+    gameState.iceBroken++;
+    addScore(300, [r, c]);
+    // 视觉反馈：冰层碎裂淡出；若该格元素刚播过消除动画（被特效击中解冻、糖保留），恢复可见
+    const el = getCandyEl(r, c);
+    if (el) {
+      if (el.classList.contains('removing') || el.classList.contains('pre-clear')) {
+        el.classList.remove('removing', 'pre-clear');
+        el.style.animation = '';
+        el.style.transform = '';
+        el.style.opacity = '';
+      }
+      const iceEl = el.querySelector('.ice');
+      if (iceEl) {
+        iceEl.classList.add('ice-break');
+        setTimeout(function() { iceEl.remove(); }, 500);
+      }
+    }
+    return true;
+  }
+
+  // 统一按新冰冻规则结算一批待消除格子：
+  // - 未冻结格：糖果消除；
+  // - 冰冻格：被击中只解冻（糖保留，待后续匹配消除）；
+  // - 实际消除格的上下左右相邻冰冻格：解冻。
+  // 返回实际被消除（board 置 null）的格子列表。
+  function resolveRemovals(toRemove) {
+    const removedCells = [];
+    for (const key of toRemove) {
+      const [r, c] = key.split(',').map(Number);
+      const candy = gameState.board[r] && gameState.board[r][c];
+      if (!candy) continue;
+      if (candy.chain) candy.chain = false; // 锁链：参与消除则解锁
+      if (candy.ice > 0) {
+        unfreezeCell(r, c); // 被特效/道具/匹配波及击中：解冻，糖保留
+      } else {
+        gameState.board[r][c] = null;
+        removedCells.push([r, c]);
+      }
+    }
+    // 相邻消除解冻
+    for (const [r, c] of removedCells) {
+      unfreezeCell(r - 1, c);
+      unfreezeCell(r + 1, c);
+      unfreezeCell(r, c - 1);
+      unfreezeCell(r, c + 1);
+    }
+    return removedCells;
+  }
+
   function processMatches() {
     try {
       // 重置动画守卫，防止连锁反应期间守卫超时
@@ -3103,60 +3245,33 @@ body {
       // 播放消除动画
       animateRemoval(toRemove, () => {
         try {
-          // 真正消除格子
-          for (const key of toRemove) {
-            const [r, c] = key.split(',').map(Number);
-            const candy = gameState.board[r] && gameState.board[r][c];
-            if (candy && candy.ice > 0) {
-              candy.ice = 0;
-              gameState.iceBroken++;
-              addScore(300, [r, c]);
-            }
-          }
-          
-          // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
-          // 特殊触发波及的格子有冰只碎冰
-          const matchCells = new Set();
-          for (const m of matches) {
-            if (!m || !m.cells) continue;
-            for (const [r, c] of m.cells) {
-              matchCells.add(r + ',' + c);
-            }
-          }
-          
-          for (const key of toRemove) {
-            const [r, c] = key.split(',').map(Number);
-            const candy = gameState.board[r] && gameState.board[r][c];
-            if (!candy) continue;
-            // 锁链：参与消除则解锁
-            if (candy.chain) {
-              candy.chain = false;
-            }
-            // 原始匹配消除：糖果消失
-            if (matchCells.has(key)) {
-              gameState.board[r][c] = null;
-            } else {
-              // 特殊波及：有冰只碎冰，糖保留
-              if (candy.ice <= 0) {
-                // 没冰的波及格也消除
-                gameState.board[r][c] = null;
-              }
-              // 有冰的：上面已碎冰，糖保留 → 不null
-            }
-          }
+          // 统一按新冰冻规则结算：
+          // 未冻结格消除；冰冻格被击中只解冻（糖保留）；实际消除格的相邻冰冻格解冻
+          resolveRemovals(toRemove);
 
-          // 生成特殊糖果（在消除位置）
+          // 生成特殊糖果（在消除位置）—— 先原地展示，上方棋子再落下
+          let spawnedAny = false;
           for (const spawn of specialSpawns) {
             if (gameState.board[spawn.r] && !gameState.board[spawn.r][spawn.c]) {
               gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
               console.log('[Spawn] created ' + spawn.type + ' at (' + spawn.r + ',' + spawn.c + ')');
+              // 立即创建 DOM 元素，原地播放生成动画，让玩家先看到特效糖
+              const cell = boardEl.querySelector('.cell[data-r="' + spawn.r + '"][data-c="' + spawn.c + '"]');
+              if (cell) {
+                while (cell.firstChild) cell.firstChild.remove();
+                const el = createCandyElement(gameState.board[spawn.r][spawn.c], spawn.r, spawn.c);
+                el.classList.add('special-spawn');
+                cell.appendChild(el);
+              }
+              spawnedAny = true;
             } else {
               console.warn('[Spawn] blocked at (' + spawn.r + ',' + spawn.c + '), cell not empty');
             }
           }
 
-          // 下落 + 填充
-          applyGravityAndFill(() => {
+          // 消除生成特效后，上面的棋子再落下：给特效糖留出原地展示时间
+          _queueStep(() => {
+            applyGravityAndFill(() => {
             try {
               // 连锁检测
               renderBoard();
@@ -3169,13 +3284,14 @@ body {
                   gameState.isAnimating = false;
                   clearAnimationGuard();
                 }
-              }, 100);
+              }, 400);
             } catch (e) {
               console.error('applyGravityAndFill callback error:', e);
               gameState.isAnimating = false;
               clearAnimationGuard();
             }
-          });
+            });
+          }, spawnedAny ? 520 : 0);
         } catch (e) {
           console.error('animateRemoval callback error:', e);
           gameState.isAnimating = false;
@@ -3435,7 +3551,10 @@ body {
       finishedCount++;
       if (finishedCount >= totalAnimated) {
         _showSpeedUpHint(false);
-        boardEl.querySelectorAll('.candy').forEach(sanitizeCandyElement);
+        // 不再对所有 .candy 调 sanitizeCandyElement：
+        // .removing 元素由 candyRemove 动画以 forwards 收尾保持 scale(0)/opacity(0) 隐形，
+        // 接下来 applyGravityAndFill 会在 step1 按 data-r/c 与 board 状态对比直接 el.remove() 清理。
+        // 若此时 sanitizeCandyElement，会把隐形元素重置为 scale(1)/opacity(1) 复活为"扁棋子"，与下落新棋子视觉重叠。
         try { callback(); } catch (e) { console.error('animateRemoval callback error:', e); }
       }
     }
@@ -3449,11 +3568,12 @@ body {
     }
 
     // 为每个动画元素添加 animationend 监听器
+    // 注意：不在 handleAnimEnd 里调 sanitizeCandyElement — candyRemove 动画 forwards 收尾
+    // 让元素保持 scale(0)/opacity(0) 隐形，由后续 applyGravityAndFill step1 从 DOM 移除。
     animatedEls.forEach(function(el) {
       function handleAnimEnd(e) {
         if (e.animationName === 'candyRemove') {
           el.removeEventListener('animationend', handleAnimEnd);
-          sanitizeCandyElement(el);
           onAnimDone();
         }
       }
@@ -3461,14 +3581,25 @@ body {
     });
 
     // 后备定时器：确保即使 animationend 未触发也能继续
+    // 注意：不再对所有动画元素 sanitizeCandyElement — 理由同上，forwards 收尾的隐形元素会被 step1 移除。
+    // 改用「仅对非 .removing 元素清理非空 inline transform」避免 transition 残留导致的小幅位移。
+    // fastMode 下也至少等待 candyRemove 动画时长（0.55s）再触发 fallback，
+    // 否则会在 CSS 动画还在 0~50% 帧时就把隐形元素提前清理，导致"扁棋子"视觉重叠。
+    const fallbackDelay = count > 0 ? (fastMode ? Math.max(600, 50) : 550) : 0;
     _queueStep(function() {
       if (finishedCount < totalAnimated) {
         console.warn('[animateRemoval] fallback timer triggered, finished=' + finishedCount + '/' + totalAnimated);
-        animatedEls.forEach(sanitizeCandyElement);
+        animatedEls.forEach(function(el) {
+          // 若元素还挂着 .removing，保留 forwards 收尾的隐形状态，不动它
+          if (!el.classList.contains('removing')) {
+            el.style.transform = '';
+            el.style.transition = '';
+          }
+        });
         finishedCount = totalAnimated;
         onAnimDone();
       }
-    }, delay);
+    }, fallbackDelay);
   }
 
   // 连击文字库（参考官方"Good! / Great! / Sweet! / Amazing! / Fantastic!"）
@@ -3488,7 +3619,7 @@ body {
   function applyGravityAndFill(callback) {
     try {
       // 重力：每列从下往上数空位，上方下落
-      const moves = []; // {fromR, fromC, toR, toC, id}
+      const moves = []; // {fromR, fromC, toR, toC, id, isNew}
 
       for (let c = 0; c < BOARD_SIZE; c++) {
         let writePos = BOARD_SIZE - 1;
@@ -3511,43 +3642,121 @@ body {
         }
       }
 
-      // 播放下落动画前先彻底清理旧 DOM 和残留状态
-      boardEl.innerHTML = '';
-      renderBoard();
+      // 确保 cellSize 已计算
+      updateCellSize();
+      // 单元格高度含 gap（board gap = 2px）
+      const cellH = cellSize + 2;
 
-      const candies = boardEl.querySelectorAll('.candy');
-      let maxDropDuration = 0;
-      candies.forEach((el, idx) => {
+      // 步骤1：移除 DOM 中对应 board 位置已为 null 的 candy（被消除的棋子）
+      // 同时收集当前 board 中所有合法的 candy.id，用于 orphan 元素兜底清理
+      const validIds = new Set();
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const cell = gameState.board[r] && gameState.board[r][c];
+          if (cell && cell.id != null) validIds.add(String(cell.id));
+        }
+      }
+      boardEl.querySelectorAll('.candy').forEach(function(el) {
         const r = parseInt(el.dataset.r);
         const c = parseInt(el.dataset.c);
-        const move = moves.find(m => m.toR === r && m.toC === c && m.id == el.dataset.id);
-        if (move) {
-          const dropRows = move.toR - move.fromR;
-          // 根据下落距离计算持续时间，更自然的物理感
-          const duration = Math.min(0.55, 0.12 + dropRows * 0.055);
-          maxDropDuration = Math.max(maxDropDuration, duration);
-          el.style.setProperty('--drop-duration', duration + 's');
-
-          if (move.isNew) {
-            // 新棋子：从更上方滑入
-            const extraOffset = cellSize * 2;
-            el.style.transform = `translateY(-${dropRows * cellSize + extraOffset}px)`;
-            el.classList.add('dropping');
-            el.offsetHeight;
-            el.style.transform = 'translateY(0)';
-          } else {
-            // 现有棋子下落
-            el.style.transform = `translateY(-${dropRows * cellSize}px)`;
-            el.classList.add('dropping');
-            el.offsetHeight;
-            el.style.transform = 'translateY(0)';
-          }
+        const id = el.dataset.id;
+        // 位置已为 null，或元素本身不在 board（data-r/c 越界） → 移除
+        if (!gameState.board[r] || !gameState.board[r][c]) {
+          el.remove();
+          return;
+        }
+        // 兜底：data-r/c 仍指向 board 中有值的位置，但 id 已被替换/重用过（极少见）
+        // 说明该元素是孤儿，必须移除以免与新糖果视觉重叠
+        if (id != null && !validIds.has(String(id))) {
+          el.remove();
         }
       });
 
-      // 等待所有下落动画完成后再执行回调
-      const waitTime = Math.max(350, Math.ceil(maxDropDuration * 1000) + 80);
-      _queueStep(callback, waitTime);
+      let maxDropDuration = 0;
+      const animatedEls = [];
+
+      // 步骤2：处理存留棋子 —— 移动到新 cell 并做位移动画
+      for (const move of moves) {
+        if (move.isNew) continue;
+
+        const el = boardEl.querySelector('.candy[data-id="' + move.id + '"]');
+        if (!el) continue;
+
+        const targetCell = boardEl.querySelector('.cell[data-r="' + move.toR + '"][data-c="' + move.toC + '"]');
+        if (!targetCell) continue;
+
+        // 清空目标 cell（防残留）并移入棋子
+        while (targetCell.firstChild) {
+          targetCell.firstChild.remove();
+        }
+        targetCell.appendChild(el);
+        el.dataset.r = move.toR;
+        el.dataset.c = move.toC;
+
+        const dropRows = move.toR - move.fromR;
+        // 下落距离越大，动画时长越长；带轻微加速感（超慢版：基准 0.48s + 每格 0.22s，上限 2.2s，确保肉眼能清楚看到下落轨迹）
+        const duration = Math.min(2.2, 0.48 + dropRows * 0.22);
+        maxDropDuration = Math.max(maxDropDuration, duration);
+
+        // 清理残留动画类/样式（注意：不要清 .removing，candyRemove 动画以 forwards 收尾，元素已 scale(0)/opacity(0) 隐形，重置会复活导致"扁棋子"）
+        // special-spawn 也须清掉：其 forwards 填充会覆盖下落 transform
+        el.classList.remove('pre-clear', 'new-spawn', 'special-spawn', 'swapping', 'selected', 'hint');
+        el.style.transition = '';
+        el.style.transform = '';
+        el.style.animation = '';
+
+        // 设置初始偏移：让棋子看起来还在原来的行位置
+        el.style.transform = 'translateY(-' + (dropRows * cellH) + 'px)';
+        el.classList.add('dropping');
+        el.style.setProperty('--drop-duration', duration + 's');
+
+        // 强制 reflow，确保浏览器已记录初始 transform
+        void el.offsetHeight;
+
+        // 触发位移动画：下落到目标位置
+        el.style.transform = 'translateY(0)';
+
+        animatedEls.push(el);
+      }
+
+      // 步骤3：处理新棋子 —— 从棋盘上方滑入
+      for (const move of moves) {
+        if (!move.isNew) continue;
+
+        const cell = boardEl.querySelector('.cell[data-r="' + move.toR + '"][data-c="' + move.toC + '"]');
+        if (!cell) continue;
+
+        const candy = gameState.board[move.toR][move.toC];
+        const el = createCandyElement(candy, move.toR, move.toC);
+        cell.appendChild(el);
+
+        const dropRows = move.toR - move.fromR; // fromR 为负，表示从棋盘上方多少行开始
+        const absRows = Math.abs(dropRows);
+        const duration = Math.min(2.2, 0.48 + absRows * 0.22);
+        maxDropDuration = Math.max(maxDropDuration, duration);
+
+        // 新棋子从棋盘顶部上方开始（额外偏移整个棋盘高度，确保在可视区域外）
+        const startOffset = absRows * cellH + BOARD_SIZE * cellH;
+        el.style.transform = 'translateY(-' + startOffset + 'px)';
+        el.classList.add('dropping');
+        el.style.setProperty('--drop-duration', duration + 's');
+
+        void el.offsetHeight;
+        el.style.transform = 'translateY(0)';
+
+        animatedEls.push(el);
+      }
+
+      // 等待所有下落动画完成后清理 transform 并执行回调
+      const waitTime = Math.max(1400, Math.ceil(maxDropDuration * 1000) + 320);
+      _queueStep(function() {
+        animatedEls.forEach(function(el) {
+          el.style.transform = '';
+          el.style.transition = '';
+          el.classList.remove('dropping');
+        });
+        callback();
+      }, waitTime);
     } catch (e) {
       console.error('applyGravityAndFill error:', e);
       renderBoard();
@@ -3971,15 +4180,8 @@ body {
 
       animateRemoval(toRemove, () => {
         try {
-          for (const key of toRemove) {
-            const [rr, cc] = key.split(',').map(Number);
-            if (gameState.board[rr][cc] && gameState.board[rr][cc].ice > 0) {
-              gameState.board[rr][cc].ice = 0;
-              gameState.iceBroken++;
-              addScore(300, [rr, cc]);
-            }
-            gameState.board[rr][cc] = null;
-          }
+          // 新冰冻规则：炸弹波及的冰冻格只解冻（糖保留）；实际消除格的相邻冰冻格解冻
+          resolveRemovals(toRemove);
           applyGravityAndFill(() => {
             try {
               renderBoard();
@@ -4013,11 +4215,9 @@ body {
 
       animateRemoval(toRemove, () => {
         try {
-          if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-            gameState.board[r][c].ice = 0;
-            gameState.iceBroken++;
-          }
-          gameState.board[r][c] = null;
+          // 新冰冻规则：锤子击中冰冻格只解冻（糖保留，待后续匹配消除）；
+          // 击中普通格则消除，其相邻冰冻格解冻
+          resolveRemovals(toRemove);
           applyGravityAndFill(() => {
             try {
               renderBoard();
@@ -4383,10 +4583,13 @@ body {
         const isHidden = comp.display === 'none' || comp.visibility === 'hidden';
 
         // 检测遮罩：opacity降低、filter异常、有遮罩类、背景色异常、元素隐藏
-        const isMasked = opacity < 0.99
+        // special-spawn（特效糖原地生成动画）进行中属正常状态，跳过
+        const isMasked = el.classList.contains('special-spawn')
+          ? false
+          : (opacity < 0.99
           || hasMaskClass
           || (filterVal && filterVal !== 'none')
-          || isHidden;
+          || isHidden);
 
         if (isMasked) {
           // 记录诊断信息
