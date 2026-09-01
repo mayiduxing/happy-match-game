@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="creative-medium" content="mini-game">
+  <!-- 内联 favicon：避免站点托管环境（如 GitHub Pages）请求 /favicon.ico 404 报错 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ff8787'/%3E%3Ccircle cx='38' cy='42' r='7' fill='%23fff'/%3E%3Ccircle cx='62' cy='42' r='7' fill='%23fff'/%3E%3Cpath d='M35 60 Q50 74 65 60' stroke='%23fff' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <title>开心消消乐 - 免费试玩</title>
   <style>
 /* ===========================
@@ -3585,7 +3587,9 @@ body {
     // 改用「仅对非 .removing 元素清理非空 inline transform」避免 transition 残留导致的小幅位移。
     // fastMode 下也至少等待 candyRemove 动画时长（0.55s）再触发 fallback，
     // 否则会在 CSS 动画还在 0~50% 帧时就把隐形元素提前清理，导致"扁棋子"视觉重叠。
-    const fallbackDelay = count > 0 ? (fastMode ? Math.max(600, 50) : 550) : 0;
+    // 正常模式延迟 = 动画时长 + 350ms 余量：与 animationend 几乎同时触发会造成竞态误报
+    // （定时器先到 → "fallback triggered" 警告每次消除都刷屏）。
+    const fallbackDelay = count > 0 ? (fastMode ? 600 : 900) : 0;
     _queueStep(function() {
       if (finishedCount < totalAnimated) {
         console.warn('[animateRemoval] fallback timer triggered, finished=' + finishedCount + '/' + totalAnimated);
@@ -4569,39 +4573,50 @@ body {
   };
 
   // ========= 健康检查：持续监控 candy 状态，自动修复遮罩 =========
+  // 告警限频：真正卡死的遮罩最多每 5 秒报一条，避免控制台刷屏
+  let _hcLastWarnAt = 0;
   function _candyHealthCheck() {
     try {
       if (!boardEl) return;
       const candies = boardEl.querySelectorAll('.candy');
       let fixed = 0;
       candies.forEach(function(el) {
+        // 处于已知动画状态（消除/预闪/下落/交换/特效生成/入场）的棋子是正常表现，
+        // 不属于"卡死遮罩"，直接跳过——否则每次消除动画都会被误报刷屏
+        if (el.classList.contains('removing') || el.classList.contains('pre-clear') ||
+            el.classList.contains('dropping') || el.classList.contains('swapping') ||
+            el.classList.contains('special-spawn')) {
+          return;
+        }
+        // 鼠标悬停高亮（.cell:hover .candy 有 brightness 滤光）是正常交互态，跳过
+        if (el.matches && el.matches(':hover')) {
+          return;
+        }
         const comp = window.getComputedStyle(el);
         const opacity = parseFloat(comp.opacity);
-        const hasMaskClass = el.classList.contains('removing') || el.classList.contains('pre-clear');
         const filterVal = comp.filter;
-        const bg = comp.backgroundColor;
         const isHidden = comp.display === 'none' || comp.visibility === 'hidden';
 
-        // 检测遮罩：opacity降低、filter异常、有遮罩类、背景色异常、元素隐藏
-        // special-spawn（特效糖原地生成动画）进行中属正常状态，跳过
-        const isMasked = el.classList.contains('special-spawn')
-          ? false
-          : (opacity < 0.99
-          || hasMaskClass
+        // 检测遮罩：opacity降低、filter异常、元素隐藏（动画状态已在上方排除）
+        const isMasked = opacity < 0.99
           || (filterVal && filterVal !== 'none')
-          || isHidden);
+          || isHidden;
 
         if (isMasked) {
-          // 记录诊断信息
-          console.warn('[HealthCheck] Masked candy detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
-            'opacity=' + opacity,
-            'filter=' + filterVal,
-            'classes=' + el.className,
-            'bg=' + bg,
-            'display=' + comp.display,
-            'visibility=' + comp.visibility,
-            'transform=' + comp.transform,
-            'animation=' + comp.animationName);
+          const now = Date.now();
+          if (now - _hcLastWarnAt > 5000) {
+            _hcLastWarnAt = now;
+            // 记录诊断信息
+            console.warn('[HealthCheck] Masked candy detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
+              'opacity=' + opacity,
+              'filter=' + filterVal,
+              'classes=' + el.className,
+              'bg=' + comp.backgroundColor,
+              'display=' + comp.display,
+              'visibility=' + comp.visibility,
+              'transform=' + comp.transform,
+              'animation=' + comp.animationName);
+          }
           sanitizeCandyElement(el);
           fixed++;
         }
@@ -4611,9 +4626,13 @@ body {
         if (face) {
           const faceComp = window.getComputedStyle(face);
           if (parseFloat(faceComp.opacity) < 0.99 || (faceComp.filter && faceComp.filter !== 'none')) {
-            console.warn('[HealthCheck] Masked face detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
-              'face-opacity=' + faceComp.opacity,
-              'face-filter=' + faceComp.filter);
+            const now = Date.now();
+            if (now - _hcLastWarnAt > 5000) {
+              _hcLastWarnAt = now;
+              console.warn('[HealthCheck] Masked face detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
+                'face-opacity=' + faceComp.opacity,
+                'face-filter=' + faceComp.filter);
+            }
             face.style.opacity = '';
             face.style.filter = '';
             face.style.webkitFilter = '';
@@ -4621,7 +4640,8 @@ body {
           }
         }
       });
-      if (fixed > 0) {
+      if (fixed > 0 && Date.now() - _hcLastWarnAt > 5000) {
+        _hcLastWarnAt = Date.now();
         console.warn('[HealthCheck] fixed ' + fixed + ' masked candies at ' + new Date().toISOString());
       }
     } catch (e) {
