@@ -59,6 +59,23 @@ body {
   overflow: hidden;
 }
 
+#app.screen-shake {
+  animation: screenShake 0.4s ease-out;
+}
+
+@keyframes screenShake {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-4px, 3px); }
+  20%  { transform: translate(4px, -3px); }
+  30%  { transform: translate(-3px, 2px); }
+  40%  { transform: translate(3px, -2px); }
+  50%  { transform: translate(-2px, 1px); }
+  60%  { transform: translate(2px, -1px); }
+  70%  { transform: translate(-1px, 0px); }
+  80%  { transform: translate(1px, 0px); }
+  100% { transform: translate(0, 0); }
+}
+
 /* Screen 切换 */
 .screen {
   position: absolute;
@@ -286,6 +303,40 @@ body {
    =========================== */
 #game-screen {
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部场景装饰：左右树枝+绿叶（参考官方自然氛围） */
+.scene-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.scene-decor .branch {
+  position: absolute;
+  top: 12px;
+  height: 50px;
+  width: 200px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.scene-decor .branch-left {
+  left: -60px;
+  transform: scaleX(-1);
+  animation: branchSway 4s ease-in-out infinite;
+}
+.scene-decor .branch-right {
+  right: -60px;
+  animation: branchSway 4s ease-in-out infinite;
+}
+@keyframes branchSway {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
 }
 
 /* 顶部栏 */
@@ -297,6 +348,8 @@ body {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  position: relative;
+  z-index: 2;
 }
 
 .icon-btn {
@@ -468,7 +521,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
+  background: var(--candy-red);
+  box-shadow:
     inset 0 -4px 8px rgba(0,0,0,0.15),
     inset 0 4px 8px rgba(255,255,255,0.4),
     0 2px 6px rgba(0,0,0,0.15);
@@ -493,14 +547,102 @@ body {
 .candy.purple { background: radial-gradient(circle at 30% 30%, #d487ff, var(--candy-purple)); }
 .candy.orange { background: radial-gradient(circle at 30% 30%, #ffb86c, var(--candy-orange)); }
 
+/* 棋子表情（眼睛+嘴巴）- 提升拟物感 */
+.candy .face {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.candy .eye {
+  position: absolute;
+  width: 14%;
+  height: 14%;
+  background: #2a1a3a;
+  border-radius: 50%;
+  top: 38%;
+}
+.candy .eye.left { left: 28%; }
+.candy .eye.right { right: 28%; }
+.candy .eye::after {
+  content: '';
+  position: absolute;
+  width: 38%;
+  height: 38%;
+  background: #fff;
+  border-radius: 50%;
+  top: 12%;
+  left: 14%;
+}
+.candy .mouth {
+  position: absolute;
+  width: 22%;
+  height: 11%;
+  border: 2px solid #2a1a3a;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  bottom: 24%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.candy.wrapped .mouth {
+  width: 28%;
+  height: 13%;
+  border-radius: 0 0 16px 16px;
+  border-color: #3a2a1a;
+  border-width: 2.5px;
+}
+/* 彩虹糖：专属面罩表情 */
+.candy.rainbow .face { display: none; }
+.candy.rainbow .rainbow-face {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.candy.rainbow .rainbow-face::before {
+  content: '';
+  position: absolute;
+  top: 38%;
+  left: 22%;
+  right: 22%;
+  height: 14%;
+  background: #2a1a3a;
+  border-radius: 50% 50% 30% 30%;
+}
+.candy.rainbow .rainbow-face::after {
+  content: '';
+  position: absolute;
+  width: 6%;
+  height: 6%;
+  background: #fff;
+  border-radius: 50%;
+  top: 42%;
+  left: 32%;
+  box-shadow: 24% 0 0 0 #fff;
+}
+
+/* 悬停高亮：鼠标所在格子浅色描边 */
+.cell:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+.cell:hover .candy {
+  filter: brightness(1.08);
+}
+
 .candy.selected {
   transform: scale(1.15);
   z-index: 10;
-  box-shadow: 
+  box-shadow:
     inset 0 -4px 8px rgba(0,0,0,0.15),
     inset 0 4px 8px rgba(255,255,255,0.4),
     0 0 0 3px #fff,
     0 0 15px rgba(255, 107, 157, 0.6);
+  animation: selectedBounce 0.6s ease-in-out infinite;
+}
+@keyframes selectedBounce {
+  0%, 100% { transform: scale(1.15); }
+  50% { transform: scale(1.22); }
 }
 
 .candy.hint {
@@ -541,6 +683,7 @@ body {
 
 .candy.wrapped {
   border-radius: 30%;
+  animation: wrappedPulse 1.2s ease-in-out infinite;
 }
 
 .candy.wrapped::after {
@@ -554,6 +697,28 @@ body {
   border-radius: 25%;
 }
 
+.candy.wrapped::before {
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 8px 2px rgba(255,255,255,0.6);
+}
+
+@keyframes wrappedPulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 -4px 8px rgba(0,0,0,0.15),
+      inset 0 4px 8px rgba(255,255,255,0.4),
+      0 2px 6px rgba(0,0,0,0.15),
+      0 0 6px 2px rgba(255,200,50,0.4);
+  }
+  50% {
+    box-shadow:
+      inset 0 -4px 8px rgba(0,0,0,0.15),
+      inset 0 4px 8px rgba(255,255,255,0.4),
+      0 2px 6px rgba(0,0,0,0.15),
+      0 0 14px 5px rgba(255,220,80,0.85);
+  }
+}
+
 .candy.rainbow {
   background: conic-gradient(
     from 0deg,
@@ -565,6 +730,30 @@ body {
 @keyframes rainbowSpin {
   from { filter: hue-rotate(0deg); }
   to { filter: hue-rotate(360deg); }
+}
+
+/* 彩虹糖全屏闪光 */
+.rainbow-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%),
+    rgba(255,255,255,0.9) 0%,
+    rgba(255,220,100,0.5) 20%,
+    rgba(200,255,255,0.3) 40%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 30;
+  animation: rainbowFlashAnim 0.6s ease-out forwards;
+}
+
+@keyframes rainbowFlashAnim {
+  0%   { opacity: 0; transform: scale(0.3); }
+  30%  { opacity: 1; transform: scale(1.2); }
+  60%  { opacity: 0.8; transform: scale(1.0); }
+  100% { opacity: 0; transform: scale(1.5); }
 }
 
 .candy.rainbow::before {
@@ -630,37 +819,61 @@ body {
   transform: translateY(-50%) rotate(-30deg);
 }
 
-/* 消除动画 */
+/* 消除动画 - 飞升向目标栏后消失 */
 .candy.removing {
-  animation: candyRemove 0.35s ease-out forwards;
+  animation: candyRemove 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 20;
+  pointer-events: none;
 }
 
 @keyframes candyRemove {
-  0% { transform: scale(1); opacity: 1; filter: brightness(1); }
-  30% { transform: scale(1.4); opacity: 0.9; filter: brightness(1.8); }
-  60% { transform: scale(0.6); opacity: 0.5; filter: brightness(2); }
-  100% { transform: scale(0); opacity: 0; filter: brightness(3); }
+  0%   { transform: scale(1)    translateY(0);    opacity: 1; filter: brightness(1) saturate(1); }
+  25%  { transform: scale(1.4)  translateY(-10%); opacity: 1; filter: brightness(1.6) saturate(1.2); }
+  50%  { transform: scale(1.1)  translateY(-40%); opacity: 0.8; filter: brightness(1.3) saturate(1.1); }
+  75%  { transform: scale(0.6)  translateY(-100%); opacity: 0.4; filter: brightness(1.8) saturate(1.3); }
+  100% { transform: scale(0)    translateY(-200%); opacity: 0; filter: brightness(2.2) saturate(1.5); }
+}
+
+/* 连锁波及预闪：被连锁消除的棋子提前泛红光 */
+.candy.pre-clear {
+  animation: preClearFlash 0.35s ease-in-out 2 alternate;
+}
+@keyframes preClearFlash {
+  0%   { filter: brightness(1)   drop-shadow(0 0 0 transparent); }
+  100% { filter: brightness(1.5) drop-shadow(0 0 10px rgba(255,60,60,0.95)) saturate(1.4); }
 }
 
 /* 粒子爆炸效果（普通消除） */
 .particle-burst {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 25;
-  animation: particleFly 0.5s ease-out forwards;
+  animation: particleFly 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes particleFly {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+  50%  { transform: translate(calc(var(--px) * 0.6), calc(var(--py) * 0.6)) scale(1.2) rotate(180deg); opacity: 0.9; }
+  100% { transform: translate(var(--px), var(--py)) scale(0) rotate(360deg); opacity: 0; }
 }
 
 /* 下落动画 */
 .candy.dropping {
-  transition: transform var(--drop-duration, 0.35s) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform var(--drop-duration, 0.35s) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 新棋子从顶部滑入 */
+.candy.new-spawn {
+  animation: newSpawn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes newSpawn {
+  0%   { transform: scale(0.5); opacity: 0.6; filter: brightness(1.3); }
+  60%  { transform: scale(1.1); opacity: 1;   filter: brightness(1.0); }
+  100% { transform: scale(1.0); opacity: 1;   filter: brightness(1.0); }
 }
 
 /* 交换动画 */
@@ -668,30 +881,78 @@ body {
   transition: transform 0.2s ease-out;
 }
 
-/* 组合文字 */
+/* 组合文字 - 3D 黄色浮字（类似官方） */
 .combo-text {
   position: absolute;
-  top: 50%;
+  top: 35%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 48px;
-  font-weight: bold;
-  color: #ff6b9d;
-  text-shadow: 2px 2px 0 #fff, 4px 4px 10px rgba(255,107,157,0.4);
+  transform: translate(-50%, -50%) scale(0.5);
+  font-size: 64px;
+  font-weight: 900;
+  color: #fff5b0;
+  letter-spacing: 3px;
+  text-shadow:
+    -3px -3px 0 #c97a1a,
+    3px -3px 0 #c97a1a,
+    -3px 3px 0 #c97a1a,
+    3px 3px 0 #c97a1a,
+    0 -4px 0 #c97a1a,
+    0 4px 0 #c97a1a,
+    4px 0 0 #c97a1a,
+    -4px 0 0 #c97a1a,
+    0 6px 12px rgba(180, 80, 0, 0.6),
+    0 0 30px rgba(255, 200, 50, 0.4);
+  -webkit-text-stroke: 2px #c97a1a;
   opacity: 0;
   pointer-events: none;
   z-index: 100;
+  font-family: 'Arial Black', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 .combo-text.show {
-  animation: comboPop 1s ease-out forwards;
+  animation: comboPop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes comboPop {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  40% { transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -100%) scale(1); }
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(-20deg); filter: brightness(2); }
+  15%  { opacity: 1; transform: translate(-50%, -55%) scale(1.5) rotate(5deg); filter: brightness(1.2); }
+  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(0deg); filter: brightness(1); }
+  50%  { opacity: 1; transform: translate(-50%, -52%) scale(1.08) rotate(0deg); filter: brightness(1.1); }
+  70%  { opacity: 1; transform: translate(-50%, -60%) scale(1.02) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9) rotate(0deg); filter: brightness(1.5); }
+}
+
+/* 加速提示：动画过程中点击棋盘可快进 */
+.speed-up-hint {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 6px 14px;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(4px);
+}
+.speed-up-hint.show { opacity: 0.85; }
+.speed-up-hint .tap-icon {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  animation: tapBlink 1.2s ease-in-out infinite;
+}
+@keyframes tapBlink {
+  0%, 100% { opacity: 0.3; transform: scale(0.7); }
+  50%      { opacity: 1;   transform: scale(1.1); }
 }
 
 /* 道具栏 */
@@ -807,35 +1068,46 @@ body {
 /* 胜利弹窗 */
 .win-modal h2 {
   color: #ffa94d;
+  font-size: 32px;
+  text-shadow: 0 2px 8px rgba(255, 169, 77, 0.3);
 }
 
 .result-stars {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin: 16px 0;
-  font-size: 48px;
+  gap: 14px;
+  margin: 20px 0 12px;
+  font-size: 56px;
 }
 
 .result-stars .star {
   color: #ddd;
   display: inline-block;
   transform: scale(0);
-  animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: starPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .result-stars .star.lit {
-  color: #ffd93d;
-  text-shadow: 0 2px 10px rgba(255, 217, 61, 0.5);
+  background: linear-gradient(180deg, #fff5b0 0%, #ffd93d 30%, #ff9d3d 60%, #c56bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 3px 8px rgba(255, 170, 50, 0.5));
+  animation: starPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, starGlow 2s ease-in-out infinite;
 }
 
-.result-stars .star:nth-child(1) { animation-delay: 0.3s; }
-.result-stars .star:nth-child(2) { animation-delay: 0.5s; }
-.result-stars .star:nth-child(3) { animation-delay: 0.7s; }
+.result-stars .star:nth-child(1) { animation-delay: 0.3s, 0.9s; }
+.result-stars .star:nth-child(2) { animation-delay: 0.5s, 1.1s; }
+.result-stars .star:nth-child(3) { animation-delay: 0.7s, 1.3s; }
 
 @keyframes starPop {
-  0% { transform: scale(0) rotate(-180deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  0%   { transform: scale(0)    rotate(-180deg); }
+  60%  { transform: scale(1.3)  rotate(10deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+@keyframes starGlow {
+  0%, 100% { filter: drop-shadow(0 3px 8px rgba(255, 170, 50, 0.5)); }
+  50%      { filter: drop-shadow(0 3px 16px rgba(255, 220, 80, 0.9)); }
 }
 
 .result-score {
@@ -945,111 +1217,100 @@ body {
 .explosion {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,180,50,0.7) 30%, rgba(255,100,50,0.4) 60%, transparent 75%);
+  background: radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(255,200,80,0.8) 20%, rgba(255,140,50,0.5) 45%, rgba(255,80,30,0.2) 65%, transparent 80%);
   pointer-events: none;
   z-index: 20;
-  animation: explode 0.6s ease-out forwards;
+  animation: explode 0.7s ease-out forwards;
 }
 
 @keyframes explode {
-  0% { transform: scale(0); opacity: 1; box-shadow: 0 0 0 0 rgba(255,200,50,0.8); }
-  40% { transform: scale(2); opacity: 0.9; box-shadow: 0 0 30px 10px rgba(255,180,50,0.6); }
-  100% { transform: scale(4); opacity: 0; box-shadow: 0 0 60px 20px rgba(255,150,50,0); }
+  0%   { transform: scale(0);   opacity: 1;   box-shadow: 0 0 0 0 rgba(255,200,50,0.9); }
+  25%  { transform: scale(1.5); opacity: 1;   box-shadow: 0 0 40px 15px rgba(255,180,50,0.7); }
+  50%  { transform: scale(2.5); opacity: 0.9; box-shadow: 0 0 60px 25px rgba(255,160,50,0.5); }
+  75%  { transform: scale(3.5); opacity: 0.5; box-shadow: 0 0 80px 35px rgba(255,140,50,0.2); }
+  100% { transform: scale(5);   opacity: 0;   box-shadow: 0 0 100px 50px rgba(255,120,50,0); }
 }
 
 /* 爆炸扩散波纹 */
 .shockwave {
   position: absolute;
   border-radius: 50%;
-  border: 3px solid rgba(255, 200, 80, 0.8);
+  border: 3px solid rgba(255, 220, 100, 0.9);
   pointer-events: none;
   z-index: 19;
-  animation: shockwaveExpand 0.7s ease-out forwards;
+  animation: shockwaveExpand 0.8s ease-out forwards;
 }
 
 @keyframes shockwaveExpand {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(5); opacity: 0; }
+  0%   { transform: scale(0.3); opacity: 1;   border-width: 4px; }
+  50%  { transform: scale(3);   opacity: 0.6; border-width: 2px; }
+  100% { transform: scale(6);   opacity: 0;   border-width: 0px; }
 }
 
-/* 光线效果（条纹糖） */
+/* 光线效果（条纹糖） - 横贯整行/整列 */
 .light-beam {
   position: absolute;
   pointer-events: none;
   z-index: 15;
-  animation: beamFlash 0.5s ease-out forwards;
+  animation: beamFlash 0.55s ease-out forwards;
+  border-radius: 4px;
 }
 
 .light-beam.horizontal {
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(255,255,255,0.3) 20%,
-    rgba(255,255,255,0.95) 45%,
-    rgba(200,255,255,0.9) 50%,
-    rgba(255,255,255,0.95) 55%,
-    rgba(255,255,255,0.3) 80%,
+    rgba(255,255,255,0.3) 10%,
+    rgba(255,255,255,0.95) 35%,
+    rgba(200,255,255,1.0) 50%,
+    rgba(255,255,255,0.95) 65%,
+    rgba(255,255,255,0.3) 90%,
     transparent 100%);
+  box-shadow:
+    0 0 20px 6px rgba(255, 255, 255, 0.6),
+    0 0 40px 12px rgba(100, 200, 255, 0.45),
+    0 0 60px 20px rgba(150, 220, 255, 0.25);
 }
 
 .light-beam.vertical {
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(255,255,255,0.3) 20%,
-    rgba(255,255,255,0.95) 45%,
-    rgba(200,255,255,0.9) 50%,
-    rgba(255,255,255,0.95) 55%,
-    rgba(255,255,255,0.3) 80%,
+    rgba(255,255,255,0.3) 10%,
+    rgba(255,255,255,0.95) 35%,
+    rgba(200,255,255,1.0) 50%,
+    rgba(255,255,255,0.95) 65%,
+    rgba(255,255,255,0.3) 90%,
     transparent 100%);
+  box-shadow:
+    0 0 20px 6px rgba(255, 255, 255, 0.6),
+    0 0 40px 12px rgba(100, 200, 255, 0.45),
+    0 0 60px 20px rgba(150, 220, 255, 0.25);
 }
 
-/* 激光核心线 */
+/* 激光核心线 - 极亮中心线 */
 .laser-core {
   position: absolute;
   pointer-events: none;
   z-index: 16;
-  animation: laserCore 0.4s ease-out forwards;
-}
-
-.laser-core.horizontal {
-  width: 100%;
-  height: 3px;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
+  animation: laserCore 0.5s ease-out forwards;
   background: linear-gradient(90deg, transparent, #fff, transparent);
-  box-shadow: 0 0 8px 2px rgba(255,255,255,0.8), 0 0 20px 4px rgba(100,200,255,0.5);
-}
-
-.laser-core.vertical {
-  height: 100%;
-  width: 3px;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, transparent, #fff, transparent);
-  box-shadow: 0 0 8px 2px rgba(255,255,255,0.8), 0 0 20px 4px rgba(100,200,255,0.5);
+  box-shadow:
+    0 0 10px 3px rgba(255,255,255,1.0),
+    0 0 30px 8px rgba(150, 220, 255, 0.9),
+    0 0 50px 15px rgba(100, 200, 255, 0.5);
 }
 
 @keyframes beamFlash {
-  0% { opacity: 0; transform: scaleX(0.1); }
-  30% { opacity: 1; transform: scaleX(1); }
-  70% { opacity: 1; transform: scaleX(1); }
-  100% { opacity: 0; transform: scaleX(1.2); }
+  0%   { opacity: 0;   transform: scaleX(0.1); }
+  15%  { opacity: 1;   transform: scaleX(1.0); }
+  60%  { opacity: 0.9; transform: scaleX(1.0); }
+  100% { opacity: 0;   transform: scaleX(1.2); }
 }
 
 @keyframes laserCore {
-  0% { opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  0%   { opacity: 0;   transform: scale(0.3); filter: brightness(1); }
+  20%  { opacity: 1;   transform: scale(1.2); filter: brightness(2); }
+  50%  { opacity: 1;   transform: scale(1.0); filter: brightness(1.5); }
+  100% { opacity: 0;   transform: scale(1.5); filter: brightness(3); }
 }
 
 /* 响应式 */
@@ -1108,6 +1369,22 @@ body {
 
     <!-- 游戏界面 -->
     <div id="game-screen" class="screen">
+      <!-- 顶部场景装饰（参考官方：树枝+绿叶营造自然氛围） -->
+      <div class="scene-decor" aria-hidden="true">
+        <svg class="branch branch-left" viewBox="0 0 200 60" preserveAspectRatio="none">
+          <path d="M0,30 Q60,5 130,30 T200,35" stroke="#7a4a2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <ellipse cx="40" cy="22" rx="12" ry="7" fill="#8de09d" transform="rotate(-20 40 22)"/>
+          <ellipse cx="80" cy="14" rx="10" ry="6" fill="#6bcf7f" transform="rotate(15 80 14)"/>
+          <ellipse cx="120" cy="20" rx="11" ry="6" fill="#8de09d" transform="rotate(-10 120 20)"/>
+          <ellipse cx="160" cy="28" rx="9" ry="5" fill="#6bcf7f" transform="rotate(25 160 28)"/>
+        </svg>
+        <svg class="branch branch-right" viewBox="0 0 200 60" preserveAspectRatio="none">
+          <path d="M0,28 Q70,5 140,28 T200,32" stroke="#7a4a2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <ellipse cx="50" cy="22" rx="11" ry="6" fill="#8de09d" transform="rotate(20 50 22)"/>
+          <ellipse cx="100" cy="14" rx="12" ry="7" fill="#6bcf7f" transform="rotate(-15 100 14)"/>
+          <ellipse cx="150" cy="22" rx="10" ry="6" fill="#8de09d" transform="rotate(10 150 22)"/>
+        </svg>
+      </div>
       <!-- 顶部信息栏 -->
       <div class="top-bar">
         <button class="icon-btn" id="btn-back">
@@ -1146,6 +1423,7 @@ body {
       <div class="board-wrap">
         <div id="board" class="board"></div>
         <div id="combo-text" class="combo-text"></div>
+        <div id="speed-up-hint" class="speed-up-hint"><span class="tap-icon"></span>点击屏幕加速</div>
       </div>
 
       <!-- 道具栏 -->
@@ -1299,6 +1577,8 @@ body {
     paused: false,
     unlockedLevel: 1,
     levelStars: {},
+    fastForward: false,        // 点击屏幕加速
+    lastChainCount: 0,         // 当前连锁数（用于combo反馈）
   };
 
   // ========= 动画守卫：防止 isAnimating 永久卡死 =========
@@ -1318,6 +1598,34 @@ body {
       clearTimeout(animationGuardTimer);
       animationGuardTimer = null;
     }
+  }
+
+  // ========= 动画队列：支持点击快进 =========
+  let _animTimers = [];
+  function _queueStep(callback, delay) {
+    const useDelay = gameState.fastForward ? Math.min(30, delay) : delay;
+    const item = { callback: callback, timer: null };
+    item.timer = setTimeout(() => {
+      _animTimers = _animTimers.filter(function(x) { return x !== item; });
+      try { callback(); } catch (e) { console.error('[queueStep callback error]', e); }
+    }, useDelay);
+    _animTimers.push(item);
+    return item.timer;
+  }
+  function _flushQueue() {
+    if (_animTimers.length === 0) return;
+    const items = _animTimers.slice();
+    _animTimers = [];
+    items.forEach(function(item) {
+      clearTimeout(item.timer);
+      try { item.callback(); } catch (e) { console.error('[flushQueue error]', e); }
+    });
+  }
+  function _showSpeedUpHint(visible) {
+    const el = document.getElementById('speed-up-hint');
+    if (!el) return;
+    if (visible) el.classList.add('show');
+    else el.classList.remove('show');
   }
 
   // ========= 音效系统（Web Audio API 程序生成） =========
@@ -1634,6 +1942,10 @@ body {
   function inBounds(r, c) { return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE; }
 
   function createCandy(color, type = CANDY_NORMAL) {
+    if (!color || !COLORS.includes(color)) {
+      console.warn('[createCandy] invalid color fallback:', color);
+      color = COLORS[rand(COLORS.length)];
+    }
     return {
       id: ++candyIdCounter,
       color: color,
@@ -1868,8 +2180,8 @@ body {
         // 交点必须是两个匹配的"内部"点（不是两端第一个），才算T/L型
         const hIsInner = crossHIdx > 0 && crossHIdx < hm.cells.length - 1;
         const vIsInner = crossVIdx > 0 && crossVIdx < vm.cells.length - 1;
-        // 至少一个是内部点，形成T型；两个都是内部则是十字型(也当T/L处理，生成包装糖)
-        if (hIsInner || vIsInner) {
+        // T/L/L+T 型判定：至少一个是内部点，或者两边都是3连（L形也生成炸弹）
+        if (hIsInner || vIsInner || (hm.length === 3 && vm.length === 3)) {
           const allCells = [...hm.cells];
           for (const cell of vm.cells) {
             if (!allCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
@@ -1881,6 +2193,7 @@ body {
             color: hm.color,
             shape: 'TL',
             length: allCells.length,
+            cross: cross,  // 记录交点，用于生成特殊糖果
           });
           combined.add('h' + i);
           combined.add('v' + j);
@@ -1968,7 +2281,48 @@ body {
   }
 
   // ========= 渲染 =========
+  function sanitizeCandyElement(el) {
+    if (!el || !el.classList.contains('candy')) return;
+    // 清除所有可能导致遮罩的 inline 样式
+    el.style.opacity = '';
+    el.style.filter = '';
+    el.style.transform = '';
+    el.style.animation = '';
+    el.style.transition = '';
+    el.style.background = '';
+    el.style.boxShadow = '';
+    el.style.visibility = '';
+    el.style.display = '';
+    el.style.webkitFilter = '';
+    el.style.webkitTransform = '';
+    el.style.webkitAnimation = '';
+    el.style.webkitTransition = '';
+    // 移除所有动画/状态类
+    el.classList.remove('removing', 'pre-clear', 'dropping', 'swapping', 'selected', 'hint', 'new-spawn');
+    // 强制重绘以确保样式重置
+    void el.offsetHeight;
+    // 确保子元素没有异常状态
+    const children = el.querySelectorAll('.face, .rainbow-face, .eye, .mouth, .ice, .chain');
+    children.forEach(function(child) {
+      child.style.opacity = '';
+      child.style.filter = '';
+      child.style.transform = '';
+      child.style.animation = '';
+      child.style.visibility = '';
+      child.style.display = '';
+      child.style.webkitFilter = '';
+      child.style.webkitTransform = '';
+      child.style.webkitAnimation = '';
+    });
+    // 再次强制重绘
+    void el.offsetHeight;
+  }
+
   function renderBoard() {
+    // 清除所有可能残留的定时器和动画
+    _entryTimers.forEach(clearTimeout);
+    _entryTimers = [];
+
     boardEl.innerHTML = '';
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
@@ -1977,7 +2331,7 @@ body {
         cell.dataset.r = r;
         cell.dataset.c = c;
 
-        const candy = gameState.board[r][c];
+        const candy = gameState.board[r] && gameState.board[r][c];
         if (candy) {
           const candyEl = createCandyElement(candy, r, c);
           cell.appendChild(candyEl);
@@ -1986,12 +2340,21 @@ body {
         boardEl.appendChild(cell);
       }
     }
+    // 防御性清理：确保所有 candy 元素都是干净的
+    boardEl.querySelectorAll('.candy').forEach(sanitizeCandyElement);
     updateCellSize();
   }
 
   function createCandyElement(candy, r, c) {
     const el = document.createElement('div');
-    el.className = 'candy ' + candy.color;
+    const color = candy.color && COLORS.includes(candy.color) ? candy.color : COLORS[rand(COLORS.length)];
+    if (color !== candy.color) {
+      console.error('[createCandyElement] INVALID COLOR at (' + r + ',' + c + '):', candy.color, 'type:', candy.type, 'id:', candy.id);
+      console.error(new Error().stack);
+      candy.color = color;
+      el.style.border = '2px solid #000';
+    }
+    el.className = 'candy ' + color;
     el.dataset.id = candy.id;
     el.dataset.r = r;
     el.dataset.c = c;
@@ -2000,6 +2363,26 @@ body {
     if (candy.type === CANDY_STRIPED_V) el.classList.add('striped-v');
     if (candy.type === CANDY_WRAPPED) el.classList.add('wrapped');
     if (candy.type === CANDY_RAINBOW) el.classList.add('rainbow');
+
+    // 表情层：眼睛+嘴（彩虹糖用专属面罩）
+    if (candy.type === CANDY_RAINBOW) {
+      const rf = document.createElement('div');
+      rf.className = 'rainbow-face';
+      el.appendChild(rf);
+    } else {
+      const face = document.createElement('div');
+      face.className = 'face';
+      const eyeL = document.createElement('div');
+      eyeL.className = 'eye left';
+      const eyeR = document.createElement('div');
+      eyeR.className = 'eye right';
+      const mouth = document.createElement('div');
+      mouth.className = 'mouth';
+      face.appendChild(eyeL);
+      face.appendChild(eyeR);
+      face.appendChild(mouth);
+      el.appendChild(face);
+    }
 
     if (candy.ice > 0) {
       const ice = document.createElement('div');
@@ -2132,18 +2515,32 @@ body {
     animateBoardEntry();
   }
 
+  // 跟踪入场动画定时器，防止泄漏
+  let _entryTimers = [];
   function animateBoardEntry() {
+    // 清除之前的入场定时器
+    _entryTimers.forEach(clearTimeout);
+    _entryTimers = [];
+
     const candies = boardEl.querySelectorAll('.candy');
     candies.forEach((el, i) => {
       const r = parseInt(el.dataset.r);
       const c = parseInt(el.dataset.c);
+      // 先确保元素是干净的
+      sanitizeCandyElement(el);
       el.style.opacity = '0';
       el.style.transform = 'translateY(-50px) scale(0.5)';
-      setTimeout(() => {
-        el.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      const timer = setTimeout(() => {
+        if (!el.isConnected) return; // 元素已从DOM移除则跳过
+        el.style.transition = 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
         el.style.opacity = '1';
         el.style.transform = 'translateY(0) scale(1)';
-      }, (r * 3 + c % 3) * 50);
+        // 动画完成后清理transition
+        setTimeout(() => {
+          if (el.isConnected) el.style.transition = '';
+        }, 400);
+      }, (r * 3 + c % 3) * 45);
+      _entryTimers.push(timer);
     });
   }
 
@@ -2206,6 +2603,8 @@ body {
     if (a.chain || b.chain) return;
 
     gameState.isAnimating = true;
+    gameState.fastForward = false;  // 每次新移动重置
+    _animTimers = [];               // 清空动画队列
     startAnimationGuard();
     clearSelected();
     AudioSys.playSlide();
@@ -2223,7 +2622,7 @@ body {
       elB.style.transform = `translate(${-dx}px, ${-dy}px)`;
     }
 
-    setTimeout(() => {
+    _queueStep(() => {
       try {
         // 交换数据
         [gameState.board[r1][c1], gameState.board[r2][c2]] = [gameState.board[r2][c2], gameState.board[r1][c1]];
@@ -2232,13 +2631,17 @@ body {
         const matches = findMatches(gameState.board);
         
         // 彩虹糖特殊处理：与普通糖交换触发同色全消
-        const hasRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) || (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
-        const bothSpecial = (gameState.board[r1][c1] && gameState.board[r1][c1].type !== CANDY_NORMAL) && (gameState.board[r2][c2] && gameState.board[r2][c2].type !== CANDY_NORMAL);
-        const hasRainbowSwap = hasRainbow && bothSpecial === false; // 彩虹+普通
-        const bothRainbow = (gameState.board[r1][c1] && gameState.board[r1][c1].type === CANDY_RAINBOW) && (gameState.board[r2][c2] && gameState.board[r2][c2].type === CANDY_RAINBOW);
+        const typeA = gameState.board[r1][c1] ? gameState.board[r1][c1].type : null;
+        const typeB = gameState.board[r2][c2] ? gameState.board[r2][c2].type : null;
+        const hasRainbow = typeA === CANDY_RAINBOW || typeB === CANDY_RAINBOW;
+        const bothRainbow = typeA === CANDY_RAINBOW && typeB === CANDY_RAINBOW;
+        const hasRainbowSwap = hasRainbow && !bothRainbow; // 至少一个彩虹糖，且不是双彩虹
 
-        if (matches.length > 0 || hasRainbowSwap || bothRainbow) {
-          // 有匹配或彩虹糖触发：扣步数，处理消除
+        // 两个非彩虹特殊糖果互换：直接触发组合效果（无需形成匹配）
+        const isSpecialCombo = (typeA !== CANDY_NORMAL && typeB !== CANDY_NORMAL && !hasRainbow);
+
+        if (matches.length > 0 || hasRainbowSwap || bothRainbow || isSpecialCombo) {
+          // 有匹配或彩虹糖触发或特殊组合：扣步数，处理消除
           gameState.steps--;
           gameState.combo = 0;
           renderBoard();
@@ -2246,6 +2649,9 @@ body {
           if (hasRainbowSwap || bothRainbow) {
             // 彩虹糖触发：手动添加消除集合
             processRainbowSwap(r1, c1, r2, c2);
+          } else if (isSpecialCombo) {
+            // 两个特殊糖果组合（条纹+条纹 / 条纹+包装 / 包装+包装）
+            processSpecialComboSwap(r1, c1, r2, c2);
           } else {
             processMatches();
           }
@@ -2258,12 +2664,13 @@ body {
             elB.style.transform = 'translate(0, 0)';
           }
 
-          setTimeout(() => {
+          _queueStep(() => {
             try {
               if (elA) elA.classList.remove('swapping');
               if (elB) elB.classList.remove('swapping');
             } catch (e) { console.error(e); }
             gameState.isAnimating = false;
+            gameState.fastForward = false;
             clearAnimationGuard();
           }, 200);
         }
@@ -2285,319 +2692,506 @@ body {
 
   // ========= 彩虹糖交换触发 =========
   function processRainbowSwap(r1, c1, r2, c2) {
-    const a = gameState.board[r1][c1];
-    const b = gameState.board[r2][c2];
-    
-    const toRemove = new Set();
-    toRemove.add(r1 + ',' + c1);
-    toRemove.add(r2 + ',' + c2);
-    
-    if (a.type === CANDY_RAINBOW && b.type === CANDY_RAINBOW) {
-      // 双彩虹：全屏清屏
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
-          if (gameState.board[r][c]) toRemove.add(r + ',' + c);
-        }
-      }
-      addScore(5000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
-    } else if (a.type === CANDY_RAINBOW) {
-      // 彩虹糖 + 普通糖：消除b的颜色
-      triggerRainbow(b.color, toRemove);
-      addScore(3000, [r1, c1]);
-    } else if (b.type === CANDY_RAINBOW) {
-      triggerRainbow(a.color, toRemove);
-      addScore(3000, [r2, c2]);
-    }
-    
-    // 处理收集目标
-    const lvl = getCurrentLevelConfig();
-    if (lvl.targetType === 'COLLECT' && lvl.collectColor) {
-      for (const key of toRemove) {
-        const [r, c] = key.split(',').map(Number);
-        const candy = gameState.board[r][c];
-        if (candy && candy.color === lvl.collectColor) {
-          gameState.collected = (gameState.collected || 0) + 1;
-          addScore(200, [r, c]);
-        }
-      }
-    }
-    
-    animateRemoval(toRemove, () => {
-      try {
-        for (const key of toRemove) {
-          const [r, c] = key.split(',').map(Number);
-          if (gameState.board[r][c] && gameState.board[r][c].ice > 0) {
-            gameState.board[r][c].ice = 0;
-            gameState.iceBroken++;
-            addScore(300, [r, c]);
-          }
-          gameState.board[r][c] = null;
-        }
-        applyGravityAndFill(() => {
-          try {
-            renderBoard();
-            updateUI();
-            setTimeout(() => {
-              try {
-                processMatches();
-              } catch (e) {
-                console.error('processRainbowSwap chain error:', e);
-                gameState.isAnimating = false;
-                clearAnimationGuard();
-              }
-            }, 100);
-          } catch (e) {
-            console.error('applyGravityAndFill callback error:', e);
-            gameState.isAnimating = false;
-            clearAnimationGuard();
-          }
-        });
-      } catch (e) {
-        console.error('animateRemoval callback error:', e);
+    try {
+      const a = gameState.board[r1] && gameState.board[r1][c1];
+      const b = gameState.board[r2] && gameState.board[r2][c2];
+      
+      if (!a || !b) {
+        console.warn('[processRainbowSwap] candy missing at swap positions');
         gameState.isAnimating = false;
         clearAnimationGuard();
+        return;
       }
-    });
+      
+      const toRemove = new Set();
+      toRemove.add(r1 + ',' + c1);
+      toRemove.add(r2 + ',' + c2);
+      
+      if (a.type === CANDY_RAINBOW && b.type === CANDY_RAINBOW) {
+        // 双彩虹：全屏清屏
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            if (gameState.board[r] && gameState.board[r][c]) toRemove.add(r + ',' + c);
+          }
+        }
+        addScore(5000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+      } else if (a.type === CANDY_RAINBOW && b.type === CANDY_WRAPPED) {
+        // 彩虹 + 炸弹：该色全变炸弹并触发连锁3x3爆炸
+        if (b.color) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === b.color) {
+                // 普通糖变炸弹，炸弹保持炸弹
+                if (candy.type === CANDY_NORMAL) candy.type = CANDY_WRAPPED;
+                toRemove.add(r + ',' + c);
+                // 连锁：每个炸弹再炸5x5
+                for (let dr = -2; dr <= 2; dr++) {
+                  for (let dc = -2; dc <= 2; dc++) {
+                    const rr = r + dr, cc = c + dc;
+                    if (inBounds(rr, cc)) toRemove.add(rr + ',' + cc);
+                  }
+                }
+              }
+            }
+          }
+        }
+        toRemove.add(r1 + ',' + c1);
+        toRemove.add(r2 + ',' + c2);
+        addScore(4000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+        showExplosion(Math.floor((r1+r2)/2), Math.floor((c1+c2)/2));
+      } else if (b.type === CANDY_RAINBOW && a.type === CANDY_WRAPPED) {
+        // 炸弹 + 彩虹：同上
+        if (a.color) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === a.color) {
+                if (candy.type === CANDY_NORMAL) candy.type = CANDY_WRAPPED;
+                toRemove.add(r + ',' + c);
+                for (let dr = -2; dr <= 2; dr++) {
+                  for (let dc = -2; dc <= 2; dc++) {
+                    const rr = r + dr, cc = c + dc;
+                    if (inBounds(rr, cc)) toRemove.add(rr + ',' + cc);
+                  }
+                }
+              }
+            }
+          }
+        }
+        toRemove.add(r1 + ',' + c1);
+        toRemove.add(r2 + ',' + c2);
+        addScore(4000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+        showExplosion(Math.floor((r1+r2)/2), Math.floor((c1+c2)/2));
+      } else if (a.type === CANDY_RAINBOW && (b.type === CANDY_STRIPED_H || b.type === CANDY_STRIPED_V)) {
+        // 彩虹 + 条纹：该色全变条纹并触发
+        if (b.color) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === b.color && candy.type === CANDY_NORMAL) {
+                candy.type = Math.random() < 0.5 ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+                toRemove.add(r + ',' + c);
+              }
+            }
+          }
+        }
+        toRemove.add(r1 + ',' + c1);
+        toRemove.add(r2 + ',' + c2);
+        addScore(3000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+      } else if (b.type === CANDY_RAINBOW && (a.type === CANDY_STRIPED_H || a.type === CANDY_STRIPED_V)) {
+        // 条纹 + 彩虹：同上
+        if (a.color) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === a.color && candy.type === CANDY_NORMAL) {
+                candy.type = Math.random() < 0.5 ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+                toRemove.add(r + ',' + c);
+              }
+            }
+          }
+        }
+        toRemove.add(r1 + ',' + c1);
+        toRemove.add(r2 + ',' + c2);
+        addScore(3000, [Math.floor((r1+r2)/2), Math.floor((c1+c2)/2)]);
+      } else if (a.type === CANDY_RAINBOW && b.type !== CANDY_RAINBOW) {
+        // 彩虹糖 + 普通糖：消除b的颜色
+        if (b.color) {
+          triggerRainbow(b.color, toRemove);
+        }
+        addScore(3000, [r1, c1]);
+      } else if (b.type === CANDY_RAINBOW && a.type !== CANDY_RAINBOW) {
+        // 普通糖 + 彩虹糖：消除a的颜色
+        if (a.color) {
+          triggerRainbow(a.color, toRemove);
+        }
+        addScore(3000, [r2, c2]);
+      }
+      
+      // 处理收集目标
+      const lvl = getCurrentLevelConfig();
+      if (lvl && lvl.targetType === 'COLLECT' && lvl.collectColor) {
+        for (const key of toRemove) {
+          const [r, c] = key.split(',').map(Number);
+          const candy = gameState.board[r] && gameState.board[r][c];
+          if (candy && candy.color === lvl.collectColor) {
+            gameState.collected = (gameState.collected || 0) + 1;
+            addScore(200, [r, c]);
+          }
+        }
+      }
+      
+      animateRemoval(toRemove, () => {
+        try {
+          for (const key of toRemove) {
+            const [r, c] = key.split(',').map(Number);
+            if (gameState.board[r] && gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+              gameState.board[r][c].ice = 0;
+              gameState.iceBroken++;
+              addScore(300, [r, c]);
+            }
+            if (gameState.board[r]) {
+              gameState.board[r][c] = null;
+            }
+          }
+          applyGravityAndFill(() => {
+            try {
+              renderBoard();
+              updateUI();
+              setTimeout(() => {
+                try {
+                  processMatches();
+                } catch (e) {
+                  console.error('processRainbowSwap chain error:', e);
+                  gameState.isAnimating = false;
+                  clearAnimationGuard();
+                }
+              }, 100);
+            } catch (e) {
+              console.error('applyGravityAndFill callback error:', e);
+              gameState.isAnimating = false;
+              clearAnimationGuard();
+            }
+          });
+        } catch (e) {
+          console.error('animateRemoval callback error:', e);
+          gameState.isAnimating = false;
+          clearAnimationGuard();
+        }
+      });
+    } catch (e) {
+      console.error('processRainbowSwap top-level error:', e);
+      gameState.isAnimating = false;
+      clearAnimationGuard();
+    }
+  }
+
+  // 两个非彩虹特殊糖果互换：直接触发组合效果
+  function processSpecialComboSwap(r1, c1, r2, c2) {
+    try {
+      const a = gameState.board[r1] && gameState.board[r1][c1];
+      const b = gameState.board[r2] && gameState.board[r2][c2];
+      if (!a || !b) {
+        console.warn('[processSpecialComboSwap] candy missing at swap positions');
+        gameState.isAnimating = false;
+        clearAnimationGuard();
+        return;
+      }
+
+      const toRemove = new Set();
+      toRemove.add(r1 + ',' + c1);
+      toRemove.add(r2 + ',' + c2);
+
+      // 使用 applyCombo 计算组合爆炸范围
+      const extraSet = new Set();
+      applyCombo({ r: r1, c: c1, candy: a }, { r: r2, c: c2, candy: b }, extraSet);
+      for (const k of extraSet) toRemove.add(k);
+
+      // 处理收集目标
+      const lvl = getCurrentLevelConfig();
+      if (lvl && lvl.targetType === 'COLLECT' && lvl.collectColor) {
+        for (const key of toRemove) {
+          const [r, c] = key.split(',').map(Number);
+          const candy = gameState.board[r] && gameState.board[r][c];
+          if (candy && candy.color === lvl.collectColor) {
+            gameState.collected = (gameState.collected || 0) + 1;
+            addScore(200, [r, c]);
+          }
+        }
+      }
+
+      animateRemoval(toRemove, () => {
+        try {
+          for (const key of toRemove) {
+            const [r, c] = key.split(',').map(Number);
+            if (gameState.board[r] && gameState.board[r][c] && gameState.board[r][c].ice > 0) {
+              gameState.board[r][c].ice = 0;
+              gameState.iceBroken++;
+              addScore(300, [r, c]);
+            }
+            if (gameState.board[r]) {
+              gameState.board[r][c] = null;
+            }
+          }
+          applyGravityAndFill(() => {
+            try {
+              renderBoard();
+              updateUI();
+              gameState.combo = 0;
+              _queueStep(() => {
+                try {
+                  processMatches();
+                } catch (e) {
+                  console.error('processSpecialComboSwap chain error:', e);
+                  gameState.isAnimating = false;
+                  clearAnimationGuard();
+                }
+              }, 100);
+            } catch (e) {
+              console.error('applyGravityAndFill callback error:', e);
+              gameState.isAnimating = false;
+              clearAnimationGuard();
+            }
+          });
+        } catch (e) {
+          console.error('animateRemoval callback error:', e);
+          gameState.isAnimating = false;
+          clearAnimationGuard();
+        }
+      });
+    } catch (e) {
+      console.error('processSpecialComboSwap top-level error:', e);
+      gameState.isAnimating = false;
+      clearAnimationGuard();
+    }
   }
 
   // ========= 匹配处理（核心） =========
   function processMatches() {
-    // 重置动画守卫，防止连锁反应期间守卫超时
-    if (gameState.isAnimating) {
-      startAnimationGuard();
-    }
-
-    const matches = findMatches(gameState.board);
-    if (matches.length === 0) {
-      // 无匹配，下落完成后检查
-      onCascadeComplete();
-      return;
-    }
-
-    gameState.combo++;
-
-    if (gameState.combo > 1) {
-      showCombo(gameState.combo);
-    }
-
-    // 收集要消除的格子
-    const toRemove = new Set();
-    const specialSpawns = []; // {r, c, color, type} - 在消除位置生成特殊糖果
-
-    for (const match of matches) {
-      if (match.shape === 'five' || match.shape === 'four' || match.shape === 'TL') {
-        console.log('[Match] found ' + match.shape + ' match, length=' + match.length + ', cells=' + match.cells.length);
+    try {
+      // 重置动画守卫，防止连锁反应期间守卫超时
+      if (gameState.isAnimating) {
+        startAnimationGuard();
       }
-      // 计分
-      const comboMult = Math.min(5, 1 + (gameState.combo - 1) * 0.5);
-      let baseScore = 60 * match.length;
-      if (match.shape === 'four') baseScore = 120 * match.length;
-      if (match.shape === 'five') baseScore = 180 * match.length;
-      if (match.shape === 'TL') baseScore = 150 * match.length;
 
-      addScore(Math.floor(baseScore * comboMult), match.cells[0]);
+      const matches = findMatches(gameState.board);
+      if (!matches || matches.length === 0) {
+        // 无匹配，下落完成后检查
+        onCascadeComplete();
+        return;
+      }
 
-      // 确定生成什么特殊糖果（只在匹配的中间/某个位置生成一个）
-      let spawnType = null;
-      let spawnPos = null;
+      gameState.combo++;
 
-      if (match.shape === 'five') {
-        spawnType = CANDY_RAINBOW;
-        // 5连的中间位置
-        const midIdx = Math.floor(match.cells.length / 2);
-        spawnPos = match.cells[midIdx];
-      } else if (match.shape === 'four') {
-        spawnType = match.direction === 'h' ? CANDY_STRIPED_H : CANDY_STRIPED_V;
-        // 4连的中间位置
-        const midIdx = Math.floor(match.cells.length / 2);
-        spawnPos = match.cells[midIdx];
-      } else if (match.shape === 'TL') {
-        spawnType = CANDY_WRAPPED;
-        // T/L型的交点（找出现次数最多的格子即交点）
-        const cellCount = {};
-        for (const [r, c] of match.cells) {
-          const key = r + ',' + c;
-          cellCount[key] = (cellCount[key] || 0) + 1;
+      if (gameState.combo > 1) {
+        showCombo(gameState.combo);
+      }
+
+      // 收集要消除的格子
+      const toRemove = new Set();
+      const specialSpawns = []; // {r, c, color, type} - 在消除位置生成特殊糖果
+      const matchCells = new Set();  // 主匹配格（区分连锁波及）
+
+      for (const match of matches) {
+        if (!match || !match.cells || match.cells.length === 0) continue;
+        if (match.shape === 'five' || match.shape === 'four' || match.shape === 'TL') {
+          console.log('[Match] found ' + match.shape + ' match, length=' + match.length + ', cells=' + match.cells.length);
         }
-        let maxCount = 0;
-        let maxKey = null;
-        for (const k in cellCount) {
-          if (cellCount[k] > maxCount) {
-            maxCount = cellCount[k];
-            maxKey = k;
+        // 计分
+        const comboMult = Math.min(5, 1 + (gameState.combo - 1) * 0.5);
+        let baseScore = 60 * match.length;
+        if (match.shape === 'four') baseScore = 120 * match.length;
+        if (match.shape === 'five') baseScore = 180 * match.length;
+        if (match.shape === 'TL') baseScore = 150 * match.length;
+
+        addScore(Math.floor(baseScore * comboMult), match.cells[0]);
+
+        // 确定生成什么特殊糖果（只在匹配的中间/某个位置生成一个）
+        let spawnType = null;
+        let spawnPos = null;
+
+        if (match.shape === 'five') {
+          spawnType = CANDY_RAINBOW;
+          // 5连的中间位置
+          const midIdx = Math.floor(match.cells.length / 2);
+          spawnPos = match.cells[midIdx];
+        } else if (match.shape === 'four') {
+          spawnType = match.direction === 'h' ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+          // 4连的中间位置
+          const midIdx = Math.floor(match.cells.length / 2);
+          spawnPos = match.cells[midIdx];
+        } else if (match.shape === 'TL') {
+          spawnType = CANDY_WRAPPED;
+          // T/L型的交点直接用 mergeMatches 记录的 cross
+          if (match.cross) {
+            spawnPos = match.cross;
+          } else {
+            // 兜底：取中间格子
+            spawnPos = match.cells[Math.floor(match.cells.length / 2)];
           }
         }
-        if (maxKey) {
-          const [r, c] = maxKey.split(',').map(Number);
-          spawnPos = [r, c];
-        } else {
-          spawnPos = match.cells[0];
+
+        if (spawnType && spawnPos) {
+          const spawnColor = match.color && COLORS.includes(match.color) ? match.color : COLORS[rand(COLORS.length)];
+          if (spawnColor !== match.color) {
+            console.warn('[Spawn] invalid match.color fallback:', match.color, 'for', spawnType);
+          }
+          specialSpawns.push({ r: spawnPos[0], c: spawnPos[1], color: spawnColor, type: spawnType });
+          console.log('[Spawn] will spawn ' + spawnType + ' at (' + spawnPos[0] + ',' + spawnPos[1] + ')');
+        }
+
+        // 加入消除集合
+        for (const [r, c] of match.cells) {
+          toRemove.add(r + ',' + c);
+          matchCells.add(r + ',' + c);
         }
       }
+      // 把主匹配集合暴露给 animateRemoval 用于判断预闪
+      gameState._lastMatchCells = matchCells;
 
-      if (spawnType && spawnPos) {
-        specialSpawns.push({ r: spawnPos[0], c: spawnPos[1], color: match.color, type: spawnType });
-        console.log('[Spawn] will spawn ' + spawnType + ' at (' + spawnPos[0] + ',' + spawnPos[1] + ')');
-      }
-
-      // 加入消除集合
-      for (const [r, c] of match.cells) {
-        toRemove.add(r + ',' + c);
-      }
-    }
-
-    // 检查特殊糖果触发（被消除的特殊糖果会触发额外效果）
-    const extraRemoves = new Set();
-    for (const key of toRemove) {
-      const [r, c] = key.split(',').map(Number);
-      const candy = gameState.board[r][c];
-      if (candy && candy.type !== CANDY_NORMAL && candy.type !== CANDY_RAINBOW) {
-        triggerSpecial(r, c, candy, extraRemoves);
-      }
-    }
-
-    // 彩虹糖触发：被消除时消除所有同色
-    const rainbowTriggers = [];
-    for (const key of toRemove) {
-      const [r, c] = key.split(',').map(Number);
-      const candy = gameState.board[r][c];
-      if (candy && candy.type === CANDY_RAINBOW) {
-        rainbowTriggers.push({ r, c, color: candy.color });
-      }
-    }
-    for (const rt of rainbowTriggers) {
-      triggerRainbow(rt.color, extraRemoves);
-      addScore(3000, [rt.r, rt.c]);
-    }
-
-    // 组合检测：如果两个相邻的特殊糖果同时被消除
-    checkCombos(toRemove, extraRemoves);
-
-    // 合并
-    for (const k of extraRemoves) toRemove.add(k);
-
-    // 处理收集目标
-    const lvl = getCurrentLevelConfig();
-    if (lvl.targetType === 'COLLECT' && lvl.collectColor) {
+      // 检查特殊糖果触发（被消除的特殊糖果会触发额外效果）
+      const extraRemoves = new Set();
       for (const key of toRemove) {
         const [r, c] = key.split(',').map(Number);
-        const candy = gameState.board[r][c];
-        if (candy && candy.color === lvl.collectColor) {
-          gameState.collected = (gameState.collected || 0) + 1;
-          addScore(200, [r, c]);
+        const candy = gameState.board[r] && gameState.board[r][c];
+        if (candy && candy.type !== CANDY_NORMAL && candy.type !== CANDY_RAINBOW) {
+          triggerSpecial(r, c, candy, extraRemoves);
         }
       }
-    }
 
-    // 播放消除音效
-    const hasBomb = Array.from(toRemove).some(function(key) {
-      var rc = key.split(',').map(Number);
-      var candy = gameState.board[rc[0]][rc[1]];
-      return candy && candy.type === CANDY_WRAPPED;
-    });
-    const hasRainbowRemove = Array.from(toRemove).some(function(key) {
-      var rc = key.split(',').map(Number);
-      var candy = gameState.board[rc[0]][rc[1]];
-      return candy && candy.type === CANDY_RAINBOW;
-    });
-    const hasStripe = Array.from(toRemove).some(function(key) {
-      var rc = key.split(',').map(Number);
-      var candy = gameState.board[rc[0]][rc[1]];
-      return candy && (candy.type === CANDY_STRIPED_H || candy.type === CANDY_STRIPED_V);
-    });
-    if (hasRainbowRemove) { AudioSys.playRainbow(); }
-    else if (hasBomb) { AudioSys.playBomb(); }
-    else if (hasStripe) { AudioSys.playStripe(); }
-    else { AudioSys.playMatch(toRemove.size); }
+      // 彩虹糖触发：被消除时消除所有同色
+      const rainbowTriggers = [];
+      for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const candy = gameState.board[r] && gameState.board[r][c];
+        if (candy && candy.type === CANDY_RAINBOW && candy.color) {
+          rainbowTriggers.push({ r, c, color: candy.color });
+        }
+      }
+      for (const rt of rainbowTriggers) {
+        triggerRainbow(rt.color, extraRemoves);
+        addScore(3000, [rt.r, rt.c]);
+      }
 
-    if (gameState.combo > 1) { AudioSys.playCombo(gameState.combo); }
+      // 组合检测：如果两个相邻的特殊糖果同时被消除
+      checkCombos(toRemove, extraRemoves);
 
-    // 播放消除动画
-    animateRemoval(toRemove, () => {
-      try {
-        // 真正消除格子
-        const iceOnlyCells = new Set(); // 只碎冰、保留糖果的格子
+      // 合并
+      for (const k of extraRemoves) toRemove.add(k);
+
+      // 处理收集目标
+      const lvl = getCurrentLevelConfig();
+      if (lvl && lvl.targetType === 'COLLECT' && lvl.collectColor) {
         for (const key of toRemove) {
           const [r, c] = key.split(',').map(Number);
-          const candy = gameState.board[r][c];
-          if (candy && candy.ice > 0) {
-            candy.ice = 0;
-            gameState.iceBroken++;
-            addScore(300, [r, c]);
+          const candy = gameState.board[r] && gameState.board[r][c];
+          if (candy && candy.color === lvl.collectColor) {
+            gameState.collected = (gameState.collected || 0) + 1;
+            addScore(200, [r, c]);
           }
         }
-        
-        // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
-        // 特殊触发波及的格子有冰只碎冰
-        const matchCells = new Set();
-        for (const m of matches) {
-          for (const [r, c] of m.cells) {
-            matchCells.add(r + ',' + c);
-          }
-        }
-        
-        for (const key of toRemove) {
-          const [r, c] = key.split(',').map(Number);
-          const candy = gameState.board[r][c];
-          if (!candy) continue;
-          // 锁链：参与消除则解锁
-          if (candy.chain) {
-            candy.chain = false;
-          }
-          // 原始匹配消除：糖果消失
-          if (matchCells.has(key)) {
-            gameState.board[r][c] = null;
-          } else {
-            // 特殊波及：有冰只碎冰，糖保留
-            if (candy.ice <= 0) {
-              // 没冰的波及格也消除
-              gameState.board[r][c] = null;
+      }
+
+      // 播放消除音效
+      const hasBomb = Array.from(toRemove).some(function(key) {
+        var rc = key.split(',').map(Number);
+        var candy = gameState.board[rc[0]] && gameState.board[rc[0]][rc[1]];
+        return candy && candy.type === CANDY_WRAPPED;
+      });
+      const hasRainbowRemove = Array.from(toRemove).some(function(key) {
+        var rc = key.split(',').map(Number);
+        var candy = gameState.board[rc[0]] && gameState.board[rc[0]][rc[1]];
+        return candy && candy.type === CANDY_RAINBOW;
+      });
+      const hasStripe = Array.from(toRemove).some(function(key) {
+        var rc = key.split(',').map(Number);
+        var candy = gameState.board[rc[0]] && gameState.board[rc[0]][rc[1]];
+        return candy && (candy.type === CANDY_STRIPED_H || candy.type === CANDY_STRIPED_V);
+      });
+      if (hasRainbowRemove) { AudioSys.playRainbow(); }
+      else if (hasBomb) { AudioSys.playBomb(); }
+      else if (hasStripe) { AudioSys.playStripe(); }
+      else { AudioSys.playMatch(toRemove.size); }
+
+      if (gameState.combo > 1) { AudioSys.playCombo(gameState.combo); }
+
+      // 播放消除动画
+      animateRemoval(toRemove, () => {
+        try {
+          // 真正消除格子
+          for (const key of toRemove) {
+            const [r, c] = key.split(',').map(Number);
+            const candy = gameState.board[r] && gameState.board[r][c];
+            if (candy && candy.ice > 0) {
+              candy.ice = 0;
+              gameState.iceBroken++;
+              addScore(300, [r, c]);
             }
-            // 有冰的：上面已碎冰，糖保留 → 不null
           }
-        }
-
-        // 生成特殊糖果（在消除位置）
-        for (const spawn of specialSpawns) {
-          if (!gameState.board[spawn.r][spawn.c]) {
-            gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
-            console.log('[Spawn] created ' + spawn.type + ' at (' + spawn.r + ',' + spawn.c + ')');
-          } else {
-            console.warn('[Spawn] blocked at (' + spawn.r + ',' + spawn.c + '), cell not empty');
+          
+          // 区分：原始匹配的格子（toRemove里在matches里的）连冰带糖都消；
+          // 特殊触发波及的格子有冰只碎冰
+          const matchCells = new Set();
+          for (const m of matches) {
+            if (!m || !m.cells) continue;
+            for (const [r, c] of m.cells) {
+              matchCells.add(r + ',' + c);
+            }
           }
-        }
-
-        // 下落 + 填充
-        applyGravityAndFill(() => {
-          try {
-            // 连锁检测
-            renderBoard();
-            updateUI();
-            setTimeout(() => {
-              try {
-                processMatches();
-              } catch (e) {
-                console.error('processMatches chain error:', e);
-                gameState.isAnimating = false;
-                clearAnimationGuard();
+          
+          for (const key of toRemove) {
+            const [r, c] = key.split(',').map(Number);
+            const candy = gameState.board[r] && gameState.board[r][c];
+            if (!candy) continue;
+            // 锁链：参与消除则解锁
+            if (candy.chain) {
+              candy.chain = false;
+            }
+            // 原始匹配消除：糖果消失
+            if (matchCells.has(key)) {
+              gameState.board[r][c] = null;
+            } else {
+              // 特殊波及：有冰只碎冰，糖保留
+              if (candy.ice <= 0) {
+                // 没冰的波及格也消除
+                gameState.board[r][c] = null;
               }
-            }, 100);
-          } catch (e) {
-            console.error('applyGravityAndFill callback error:', e);
-            gameState.isAnimating = false;
-            clearAnimationGuard();
+              // 有冰的：上面已碎冰，糖保留 → 不null
+            }
           }
-        });
-      } catch (e) {
-        console.error('animateRemoval callback error:', e);
-        gameState.isAnimating = false;
-        clearAnimationGuard();
-      }
-    });
+
+          // 生成特殊糖果（在消除位置）
+          for (const spawn of specialSpawns) {
+            if (gameState.board[spawn.r] && !gameState.board[spawn.r][spawn.c]) {
+              gameState.board[spawn.r][spawn.c] = createCandy(spawn.color, spawn.type);
+              console.log('[Spawn] created ' + spawn.type + ' at (' + spawn.r + ',' + spawn.c + ')');
+            } else {
+              console.warn('[Spawn] blocked at (' + spawn.r + ',' + spawn.c + '), cell not empty');
+            }
+          }
+
+          // 下落 + 填充
+          applyGravityAndFill(() => {
+            try {
+              // 连锁检测
+              renderBoard();
+              updateUI();
+              _queueStep(() => {
+                try {
+                  processMatches();
+                } catch (e) {
+                  console.error('processMatches chain error:', e);
+                  gameState.isAnimating = false;
+                  clearAnimationGuard();
+                }
+              }, 100);
+            } catch (e) {
+              console.error('applyGravityAndFill callback error:', e);
+              gameState.isAnimating = false;
+              clearAnimationGuard();
+            }
+          });
+        } catch (e) {
+          console.error('animateRemoval callback error:', e);
+          gameState.isAnimating = false;
+          clearAnimationGuard();
+        }
+      });
+    } catch (e) {
+      console.error('processMatches top-level error:', e);
+      gameState.isAnimating = false;
+      clearAnimationGuard();
+    }
   }
 
   // 特殊糖果触发效果
   function triggerSpecial(r, c, candy, extraSet) {
+    if (!candy || !gameState.board[r]) return;
     if (candy.type === CANDY_STRIPED_H) {
       // 横向条纹=消整行
       for (let cc = 0; cc < BOARD_SIZE; cc++) {
@@ -2608,29 +3202,30 @@ body {
     } else if (candy.type === CANDY_STRIPED_V) {
       // 纵向条纹=消整列
       for (let rr = 0; rr < BOARD_SIZE; rr++) {
-        if (gameState.board[rr][c]) extraSet.add(rr + ',' + c);
+        if (gameState.board[rr] && gameState.board[rr][c]) extraSet.add(rr + ',' + c);
       }
       addScore(1000, [r, c]);
       showBeam(r, c, 'v');
     } else if (candy.type === CANDY_WRAPPED) {
-      // 包装糖：3×3爆炸两次（第一次基础范围，第二次稍大，这里合并为一次大范围+高分）
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
+      // 包装糖：5×5大爆炸
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
           const rr = r + dr, cc = c + dc;
-          if (inBounds(rr, cc) && gameState.board[rr][cc]) {
+          if (inBounds(rr, cc) && gameState.board[rr] && gameState.board[rr][cc]) {
             extraSet.add(rr + ',' + cc);
           }
         }
       }
       addScore(2500, [r, c]);
       showExplosion(r, c);
-      // 第二次爆炸标记（延迟视觉效果已通过计分体现）
       setTimeout(() => showExplosion(r, c), 200);
     }
   }
 
   function triggerRainbow(color, extraSet) {
+    if (!color) return;
     for (let r = 0; r < BOARD_SIZE; r++) {
+      if (!gameState.board[r]) continue;
       for (let c = 0; c < BOARD_SIZE; c++) {
         const candy = gameState.board[r][c];
         if (candy && candy.color === color) {
@@ -2638,130 +3233,158 @@ body {
         }
       }
     }
-    // 彩虹全屏闪光
-    var flash = document.createElement('div');
-    flash.className = 'rainbow-flash';
-    flash.style.setProperty('--cx', '50%');
-    flash.style.setProperty('--cy', '50%');
-    boardEl.appendChild(flash);
-    setTimeout(function() { flash.remove(); }, 550);
+    // 彩虹全屏闪光 - 多波次
+    try {
+      for (var fi = 0; fi < 3; fi++) {
+        (function(idx) {
+          setTimeout(function() {
+            var flash = document.createElement('div');
+            flash.className = 'rainbow-flash';
+            flash.style.setProperty('--cx', '50%');
+            flash.style.setProperty('--cy', '50%');
+            flash.style.animationDelay = '0s';
+            boardEl.appendChild(flash);
+            setTimeout(function() {
+              try { flash.remove(); } catch (e) {}
+            }, 650);
+          }, fi * 120);
+        })(fi);
+      }
+    } catch (e) {
+      console.error('triggerRainbow flash error:', e);
+    }
   }
 
   // 道具组合检测
   function checkCombos(toRemove, extraSet) {
-    const removedList = Array.from(toRemove).map(k => {
-      const [r, c] = k.split(',').map(Number);
-      return { r, c, candy: gameState.board[r][c] };
-    }).filter(x => x.candy);
+    try {
+      const removedList = Array.from(toRemove).map(k => {
+        const [r, c] = k.split(',').map(Number);
+        return { r, c, candy: gameState.board[r] && gameState.board[r][c] };
+      }).filter(x => x.candy);
 
-    // 找相邻的特殊糖果对
-    for (let i = 0; i < removedList.length; i++) {
-      for (let j = i + 1; j < removedList.length; j++) {
-        const a = removedList[i];
-        const b = removedList[j];
-        const dist = Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
-        if (dist !== 1) continue;
-        if (a.candy.type === CANDY_NORMAL && b.candy.type === CANDY_NORMAL) continue;
+      // 找相邻的特殊糖果对
+      for (let i = 0; i < removedList.length; i++) {
+        for (let j = i + 1; j < removedList.length; j++) {
+          const a = removedList[i];
+          const b = removedList[j];
+          const dist = Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+          if (dist !== 1) continue;
+          if (a.candy.type === CANDY_NORMAL && b.candy.type === CANDY_NORMAL) continue;
 
-        // 两个都是特殊糖果 → 组合效果
-        const aSpecial = a.candy.type !== CANDY_NORMAL;
-        const bSpecial = b.candy.type !== CANDY_NORMAL;
+          // 两个都是特殊糖果 → 组合效果
+          const aSpecial = a.candy.type !== CANDY_NORMAL;
+          const bSpecial = b.candy.type !== CANDY_NORMAL;
 
-        if (aSpecial && bSpecial) {
-          applyCombo(a, b, extraSet);
+          if (aSpecial && bSpecial) {
+            applyCombo(a, b, extraSet);
+          }
         }
       }
+    } catch (e) {
+      console.error('checkCombos error:', e);
     }
   }
 
   function applyCombo(a, b, extraSet) {
-    const types = [a.candy.type, b.candy.type].sort();
-    const centerR = Math.floor((a.r + b.r) / 2);
-    const centerC = Math.floor((a.c + b.c) / 2);
+    try {
+      if (!a || !b || !a.candy || !b.candy) return;
+      const types = [a.candy.type, b.candy.type].sort();
+      const centerR = Math.floor((a.r + b.r) / 2);
+      const centerC = Math.floor((a.c + b.c) / 2);
 
-    // 条纹 + 条纹 = 十字
-    if ((types[0].startsWith('striped') && types[1].startsWith('striped'))) {
-      for (let cc = 0; cc < BOARD_SIZE; cc++) {
-        if (gameState.board[a.r] && gameState.board[a.r][cc]) extraSet.add(a.r + ',' + cc);
+      // 条纹 + 条纹 = 十字
+      if ((types[0].startsWith('striped') && types[1].startsWith('striped'))) {
+        for (let cc = 0; cc < BOARD_SIZE; cc++) {
+          if (gameState.board[a.r] && gameState.board[a.r][cc]) extraSet.add(a.r + ',' + cc);
+        }
+        for (let rr = 0; rr < BOARD_SIZE; rr++) {
+          if (gameState.board[rr] && gameState.board[rr][b.c]) extraSet.add(rr + ',' + b.c);
+        }
+        addScore(2000, [centerR, centerC]);
+        showBeam(a.r, a.c, 'h');
+        showBeam(b.r, b.c, 'v');
       }
-      for (let rr = 0; rr < BOARD_SIZE; rr++) {
-        if (gameState.board[rr] && gameState.board[rr][b.c]) extraSet.add(rr + ',' + b.c);
-      }
-      addScore(2000, [centerR, centerC]);
-      showBeam(a.r, a.c, 'h');
-      showBeam(b.r, b.c, 'v');
-    }
-    // 条纹 + 彩虹 = 该色全变条纹
-    else if (types.includes('rainbow') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
-      const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
-      const stripedCandy = a.candy.type.startsWith('striped') ? a.candy : b.candy;
-      const color = rainbowCandy.color;
-      // 将该色所有普通糖变条纹并触发
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
-          const candy = gameState.board[r][c];
-          if (candy && candy.color === color) {
-            candy.type = Math.random() < 0.5 ? CANDY_STRIPED_H : CANDY_STRIPED_V;
-            extraSet.add(r + ',' + c);
+      // 条纹 + 彩虹 = 该色全变条纹
+      else if (types.includes('rainbow') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
+        const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
+        const color = rainbowCandy.color;
+        if (color) {
+          // 将该色所有普通糖变条纹并触发
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === color && candy.type === CANDY_NORMAL) {
+                candy.type = Math.random() < 0.5 ? CANDY_STRIPED_H : CANDY_STRIPED_V;
+                extraSet.add(r + ',' + c);
+              }
+            }
           }
         }
+        addScore(3000, [centerR, centerC]);
       }
-      addScore(3000, [centerR, centerC]);
-    }
-    // 包装 + 包装 = 双5×5爆炸
-    else if (types[0] === 'wrapped' && types[1] === 'wrapped') {
-      for (let dr = -2; dr <= 2; dr++) {
-        for (let dc = -2; dc <= 2; dc++) {
-          const rr = centerR + dr, cc = centerC + dc;
-          if (inBounds(rr, cc) && gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
-        }
-      }
-      addScore(3000, [centerR, centerC]);
-      showExplosion(centerR, centerC);
-    }
-    // 条纹 + 包装 = 3行+3列
-    else if (types.includes('wrapped') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
-      for (let dr = -1; dr <= 1; dr++) {
-        const rr = centerR + dr;
-        if (rr >= 0 && rr < BOARD_SIZE) {
-          for (let cc = 0; cc < BOARD_SIZE; cc++) {
-            if (gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+      // 包装 + 包装 = 双重大爆炸（7×7超大范围）
+      else if (types[0] === 'wrapped' && types[1] === 'wrapped') {
+        for (let dr = -3; dr <= 3; dr++) {
+          for (let dc = -3; dc <= 3; dc++) {
+            const rr = centerR + dr, cc = centerC + dc;
+            if (inBounds(rr, cc) && gameState.board[rr] && gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
           }
         }
+        addScore(4000, [centerR, centerC]);
+        showExplosion(centerR, centerC);
       }
-      for (let dc = -1; dc <= 1; dc++) {
-        const cc = centerC + dc;
-        if (cc >= 0 && cc < BOARD_SIZE) {
-          for (let rr = 0; rr < BOARD_SIZE; rr++) {
-            if (gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+      // 条纹 + 包装 = 3行+3列
+      else if (types.includes('wrapped') && (types[0].startsWith('striped') || types[1].startsWith('striped'))) {
+        for (let dr = -1; dr <= 1; dr++) {
+          const rr = centerR + dr;
+          if (rr >= 0 && rr < BOARD_SIZE) {
+            for (let cc = 0; cc < BOARD_SIZE; cc++) {
+              if (gameState.board[rr] && gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+            }
           }
         }
-      }
-      addScore(2500, [centerR, centerC]);
-    }
-    // 彩虹 + 彩虹 = 清屏
-    else if (types[0] === 'rainbow' && types[1] === 'rainbow') {
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
-          if (gameState.board[r][c]) extraSet.add(r + ',' + c);
-        }
-      }
-      addScore(5000, [centerR, centerC]);
-    }
-    // 包装 + 彩虹 = 该色全变包装
-    else if (types.includes('rainbow') && types.includes('wrapped')) {
-      const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
-      const color = rainbowCandy.color;
-      for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
-          const candy = gameState.board[r][c];
-          if (candy && candy.color === color) {
-            candy.type = CANDY_WRAPPED;
-            extraSet.add(r + ',' + c);
+        for (let dc = -1; dc <= 1; dc++) {
+          const cc = centerC + dc;
+          if (cc >= 0 && cc < BOARD_SIZE) {
+            for (let rr = 0; rr < BOARD_SIZE; rr++) {
+              if (gameState.board[rr] && gameState.board[rr][cc]) extraSet.add(rr + ',' + cc);
+            }
           }
         }
+        addScore(2500, [centerR, centerC]);
       }
-      addScore(4000, [centerR, centerC]);
+      // 彩虹 + 彩虹 = 清屏
+      else if (types[0] === 'rainbow' && types[1] === 'rainbow') {
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          if (!gameState.board[r]) continue;
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            if (gameState.board[r][c]) extraSet.add(r + ',' + c);
+          }
+        }
+        addScore(5000, [centerR, centerC]);
+      }
+      // 包装 + 彩虹 = 该色全变包装
+      else if (types.includes('rainbow') && types.includes('wrapped')) {
+        const rainbowCandy = a.candy.type === 'rainbow' ? a.candy : b.candy;
+        const color = rainbowCandy.color;
+        if (color) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            if (!gameState.board[r]) continue;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const candy = gameState.board[r][c];
+              if (candy && candy.color === color && candy.type === CANDY_NORMAL) {
+                candy.type = CANDY_WRAPPED;
+                extraSet.add(r + ',' + c);
+              }
+            }
+          }
+        }
+        addScore(4000, [centerR, centerC]);
+      }
+    } catch (e) {
+      console.error('applyCombo error:', e);
     }
   }
 
@@ -2769,69 +3392,175 @@ body {
   function animateRemoval(toRemove, callback) {
     let count = 0;
     const keys = Array.from(toRemove);
+    const matchCells = gameState._lastMatchCells || new Set();
+    const extras = [];
+    const animatedEls = [];
+
     for (const key of keys) {
       const [r, c] = key.split(',').map(Number);
       const el = getCandyEl(r, c);
       if (el) {
+        if (!matchCells.has(key)) extras.push(el);
         el.classList.add('removing');
+        animatedEls.push(el);
         count++;
       }
     }
 
-    const delay = count > 0 ? 300 : 0;
-    setTimeout(callback, delay);
-  }
+    // 预闪：连锁波及的格子先红光闪
+    if (extras.length > 0) {
+      extras.forEach(function(el) { el.classList.add('pre-clear'); });
+      const flashMs = gameState.fastForward ? 20 : 220;
+      _queueStep(function() {
+        extras.forEach(function(el) { el.classList.remove('pre-clear'); });
+      }, flashMs);
+    }
 
-  function applyGravityAndFill(callback) {
-    // 重力：每列从下往上数空位，上方下落
-    const moves = []; // {fromR, fromC, toR, toC, id}
+    // 显示连击文字
+    if (gameState.combo >= 1) {
+      const text = _comboWord(gameState.combo);
+      if (text) showComboText(text);
+    }
 
-    for (let c = 0; c < BOARD_SIZE; c++) {
-      let writePos = BOARD_SIZE - 1;
-      for (let r = BOARD_SIZE - 1; r >= 0; r--) {
-        if (gameState.board[r][c]) {
-          if (r !== writePos) {
-            moves.push({ fromR: r, fromC: c, toR: writePos, toC: c, id: gameState.board[r][c].id });
-            gameState.board[writePos][c] = gameState.board[r][c];
-            gameState.board[r][c] = null;
-          }
-          writePos--;
-        }
-      }
+    // 提示用户可以加速
+    _showSpeedUpHint(true);
 
-      // 顶部填充新糖果
-      for (let r = writePos; r >= 0; r--) {
-        const color = COLORS[rand(COLORS.length)];
-        gameState.board[r][c] = createCandy(color, CANDY_NORMAL);
-        moves.push({ fromR: r - (writePos + 1), fromC: c, toR: r, toC: c, id: gameState.board[r][c].id, isNew: true });
+    // 使用 animationend 事件确保动画完成后清理
+    let finishedCount = 0;
+    const totalAnimated = animatedEls.length;
+    const fastMode = gameState.fastForward;
+    const delay = count > 0 ? (fastMode ? 50 : 550) : 0;
+
+    function onAnimDone() {
+      finishedCount++;
+      if (finishedCount >= totalAnimated) {
+        _showSpeedUpHint(false);
+        boardEl.querySelectorAll('.candy').forEach(sanitizeCandyElement);
+        try { callback(); } catch (e) { console.error('animateRemoval callback error:', e); }
       }
     }
 
-    // 播放下落动画
-    renderBoard();
+    if (totalAnimated === 0) {
+      _queueStep(function() {
+        _showSpeedUpHint(false);
+        try { callback(); } catch (e) { console.error('animateRemoval callback error:', e); }
+      }, 0);
+      return;
+    }
 
-    const candies = boardEl.querySelectorAll('.candy');
-    candies.forEach((el, idx) => {
-      const r = parseInt(el.dataset.r);
-      const c = parseInt(el.dataset.c);
-      const move = moves.find(m => m.toR === r && m.toC === c && m.id == el.dataset.id);
-      if (move) {
-        const dropRows = move.toR - move.fromR;
-        const duration = Math.min(0.5, 0.15 + dropRows * 0.06);
-        el.style.setProperty('--drop-duration', duration + 's');
-        el.style.transform = `translateY(-${dropRows * cellSize}px)`;
-        el.classList.add('dropping');
-        el.offsetHeight;
-        el.style.transform = 'translateY(0)';
+    // 为每个动画元素添加 animationend 监听器
+    animatedEls.forEach(function(el) {
+      function handleAnimEnd(e) {
+        if (e.animationName === 'candyRemove') {
+          el.removeEventListener('animationend', handleAnimEnd);
+          sanitizeCandyElement(el);
+          onAnimDone();
+        }
       }
+      el.addEventListener('animationend', handleAnimEnd);
     });
 
-    setTimeout(callback, 500);
+    // 后备定时器：确保即使 animationend 未触发也能继续
+    _queueStep(function() {
+      if (finishedCount < totalAnimated) {
+        console.warn('[animateRemoval] fallback timer triggered, finished=' + finishedCount + '/' + totalAnimated);
+        animatedEls.forEach(sanitizeCandyElement);
+        finishedCount = totalAnimated;
+        onAnimDone();
+      }
+    }, delay);
+  }
+
+  // 连击文字库（参考官方"Good! / Great! / Sweet! / Amazing! / Fantastic!"）
+  function _comboWord(combo) {
+    if (combo <= 0) return null;
+    if (combo === 1) return 'Good!';
+    if (combo === 2) return 'Great!';
+    if (combo === 3) return 'Amazing!';
+    if (combo === 4) return 'Sweet!';
+    if (combo === 5) return 'Awesome!';
+    if (combo === 6) return 'Fantastic!';
+    if (combo === 7) return 'Incredible!';
+    if (combo === 8) return 'Unbelievable!';
+    return 'Legendary!';
+  }
+
+  function applyGravityAndFill(callback) {
+    try {
+      // 重力：每列从下往上数空位，上方下落
+      const moves = []; // {fromR, fromC, toR, toC, id}
+
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        let writePos = BOARD_SIZE - 1;
+        for (let r = BOARD_SIZE - 1; r >= 0; r--) {
+          if (gameState.board[r] && gameState.board[r][c]) {
+            if (r !== writePos) {
+              moves.push({ fromR: r, fromC: c, toR: writePos, toC: c, id: gameState.board[r][c].id });
+              gameState.board[writePos][c] = gameState.board[r][c];
+              gameState.board[r][c] = null;
+            }
+            writePos--;
+          }
+        }
+
+        // 顶部填充新糖果
+        for (let r = writePos; r >= 0; r--) {
+          const color = COLORS[rand(COLORS.length)];
+          gameState.board[r][c] = createCandy(color, CANDY_NORMAL);
+          moves.push({ fromR: r - (writePos + 1), fromC: c, toR: r, toC: c, id: gameState.board[r][c].id, isNew: true });
+        }
+      }
+
+      // 播放下落动画前先彻底清理旧 DOM 和残留状态
+      boardEl.innerHTML = '';
+      renderBoard();
+
+      const candies = boardEl.querySelectorAll('.candy');
+      let maxDropDuration = 0;
+      candies.forEach((el, idx) => {
+        const r = parseInt(el.dataset.r);
+        const c = parseInt(el.dataset.c);
+        const move = moves.find(m => m.toR === r && m.toC === c && m.id == el.dataset.id);
+        if (move) {
+          const dropRows = move.toR - move.fromR;
+          // 根据下落距离计算持续时间，更自然的物理感
+          const duration = Math.min(0.55, 0.12 + dropRows * 0.055);
+          maxDropDuration = Math.max(maxDropDuration, duration);
+          el.style.setProperty('--drop-duration', duration + 's');
+
+          if (move.isNew) {
+            // 新棋子：从更上方滑入
+            const extraOffset = cellSize * 2;
+            el.style.transform = `translateY(-${dropRows * cellSize + extraOffset}px)`;
+            el.classList.add('dropping');
+            el.offsetHeight;
+            el.style.transform = 'translateY(0)';
+          } else {
+            // 现有棋子下落
+            el.style.transform = `translateY(-${dropRows * cellSize}px)`;
+            el.classList.add('dropping');
+            el.offsetHeight;
+            el.style.transform = 'translateY(0)';
+          }
+        }
+      });
+
+      // 等待所有下落动画完成后再执行回调
+      const waitTime = Math.max(350, Math.ceil(maxDropDuration * 1000) + 80);
+      _queueStep(callback, waitTime);
+    } catch (e) {
+      console.error('applyGravityAndFill error:', e);
+      renderBoard();
+      try { callback(); } catch (cbErr) { console.error('applyGravityAndFill callback error:', cbErr); }
+    }
   }
 
   function onCascadeComplete() {
     gameState.combo = 0;
     gameState.isAnimating = false;
+    gameState.fastForward = false;
+    _animTimers = [];
+    _showSpeedUpHint(false);
     clearAnimationGuard();
     updateUI();
 
@@ -2929,6 +3658,7 @@ body {
     animateNumber('final-score', gameState.score);
 
     const lvl = getCurrentLevelConfig();
+    const bonusSteps = gameState.steps;
     let detail = '';
     if (bonusSteps > 0) {
       detail = `剩余步数奖励: +${bonusScore} 分<br>`;
@@ -3021,6 +3751,16 @@ body {
   function showExplosion(r, c) {
     const cell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
     if (!cell) return;
+
+    // 屏幕震动
+    const app = document.getElementById('app');
+    if (app) {
+      app.classList.remove('screen-shake');
+      void app.offsetHeight;
+      app.classList.add('screen-shake');
+      setTimeout(function() { app.classList.remove('screen-shake'); }, 400);
+    }
+
     const exp = document.createElement('div');
     exp.className = 'explosion';
     exp.style.left = '50%';
@@ -3030,43 +3770,111 @@ body {
     exp.style.marginLeft = -cellSize / 2 + 'px';
     exp.style.marginTop = -cellSize / 2 + 'px';
     cell.appendChild(exp);
-    // 添加扩散波纹
-    const wave = document.createElement('div');
-    wave.className = 'shockwave';
-    wave.style.left = '50%';
-    wave.style.top = '50%';
-    wave.style.width = cellSize + 'px';
-    wave.style.height = cellSize + 'px';
-    wave.style.marginLeft = -cellSize / 2 + 'px';
-    wave.style.marginTop = -cellSize / 2 + 'px';
-    cell.appendChild(wave);
-    // 添加小粒子
-    for (var i = 0; i < 6; i++) {
+
+    // 多层扩散波纹
+    for (var wi = 0; wi < 2; wi++) {
+      var wave = document.createElement('div');
+      wave.className = 'shockwave';
+      wave.style.left = '50%';
+      wave.style.top = '50%';
+      wave.style.width = cellSize + 'px';
+      wave.style.height = cellSize + 'px';
+      wave.style.marginLeft = -cellSize / 2 + 'px';
+      wave.style.marginTop = -cellSize / 2 + 'px';
+      wave.style.animationDelay = (wi * 0.15) + 's';
+      cell.appendChild(wave);
+      setTimeout(function(w) { return function() { w.remove(); }; }(wave), 900);
+    }
+
+    // 更多粒子，更大范围
+    var particleColors = ['#ff6b6b','#ffd93d','#ffa94d','#ff8787','#ff4444','#ffcc00','#ff9966'];
+    for (var i = 0; i < 12; i++) {
       var p = document.createElement('div');
       p.className = 'particle-burst';
       p.style.left = '50%';
       p.style.top = '50%';
-      p.style.background = ['#ff6b6b','#ffd93d','#ffa94d','#ff8787'][Math.floor(Math.random()*4)];
-      var angle = (Math.PI * 2 * i) / 6;
-      var dist = 20 + Math.random() * 20;
+      p.style.background = particleColors[Math.floor(Math.random() * particleColors.length)];
+      var angle = (Math.PI * 2 * i) / 12 + (Math.random() - 0.5) * 0.3;
+      var dist = 25 + Math.random() * 35;
       p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
       p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
       cell.appendChild(p);
-      setTimeout(function(el) { return function() { el.remove(); }; }(p), 550);
+      setTimeout(function(el) { return function() { el.remove(); }; }(p), 650);
     }
-    setTimeout(function() { exp.remove(); wave.remove(); }, 700);
+
+    setTimeout(function() { exp.remove(); }, 750);
   }
 
   function showBeam(r, c, direction) {
-    const cell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
-    if (!cell) return;
+    const boardRect = boardEl.getBoundingClientRect();
+    const cellEl = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+    if (!cellEl) return;
+    const cellRect = cellEl.getBoundingClientRect();
+    const offsetX = cellRect.left - boardRect.left;
+    const offsetY = cellRect.top - boardRect.top;
+
+    // 主光束
     const beam = document.createElement('div');
     beam.className = 'light-beam ' + (direction === 'h' ? 'horizontal' : 'vertical');
-    cell.appendChild(beam);
+    if (direction === 'h') {
+      beam.style.left = '0px';
+      beam.style.top = offsetY + 'px';
+      beam.style.width = '100%';
+      beam.style.height = cellRect.height + 'px';
+    } else {
+      beam.style.left = offsetX + 'px';
+      beam.style.top = '0px';
+      beam.style.height = '100%';
+      beam.style.width = cellRect.width + 'px';
+    }
+    boardEl.appendChild(beam);
+
+    // 激光核心
     const laser = document.createElement('div');
     laser.className = 'laser-core ' + (direction === 'h' ? 'horizontal' : 'vertical');
-    cell.appendChild(laser);
-    setTimeout(function() { beam.remove(); laser.remove(); }, 500);
+    if (direction === 'h') {
+      laser.style.left = '0px';
+      laser.style.top = (offsetY + cellRect.height / 2) + 'px';
+      laser.style.width = '100%';
+      laser.style.height = '4px';
+      laser.style.transform = 'translateY(-50%)';
+    } else {
+      laser.style.left = (offsetX + cellRect.width / 2) + 'px';
+      laser.style.top = '0px';
+      laser.style.height = '100%';
+      laser.style.width = '4px';
+      laser.style.transform = 'translateX(-50%)';
+    }
+    boardEl.appendChild(laser);
+
+    // 额外的闪电效果粒子
+    for (var i = 0; i < 5; i++) {
+      var spark = document.createElement('div');
+      spark.style.position = 'absolute';
+      spark.style.width = '4px';
+      spark.style.height = '4px';
+      spark.style.borderRadius = '50%';
+      spark.style.background = '#fff';
+      spark.style.boxShadow = '0 0 6px 2px rgba(255,255,255,0.9), 0 0 12px 4px rgba(150,220,255,0.7)';
+      spark.style.pointerEvents = 'none';
+      spark.style.zIndex = '17';
+      if (direction === 'h') {
+        spark.style.left = (Math.random() * 100) + '%';
+        spark.style.top = (offsetY + cellRect.height / 2 + (Math.random() - 0.5) * cellRect.height * 0.8) + 'px';
+      } else {
+        spark.style.left = (offsetX + cellRect.width / 2 + (Math.random() - 0.5) * cellRect.width * 0.8) + 'px';
+        spark.style.top = (Math.random() * 100) + '%';
+      }
+      spark.style.animation = 'particleFly 0.4s ease-out forwards';
+      var sx = (Math.random() - 0.5) * 40;
+      var sy = (Math.random() - 0.5) * 40;
+      spark.style.setProperty('--px', sx + 'px');
+      spark.style.setProperty('--py', sy + 'px');
+      boardEl.appendChild(spark);
+      setTimeout(function(s) { return function() { s.remove(); }; }(spark), 450);
+    }
+
+    setTimeout(function() { beam.remove(); laser.remove(); }, 600);
   }
 
   function createConfetti() {
@@ -3313,6 +4121,12 @@ body {
     // 棋盘点击
     let suppressClick = false;
     boardEl.addEventListener('click', (e) => {
+      // 加速：动画期间点击棋盘（任意位置）即跳过所有待执行动画
+      if (gameState.isAnimating && _animTimers.length > 0) {
+        gameState.fastForward = true;
+        _flushQueue();
+        return;
+      }
       if (suppressClick) { suppressClick = false; return; }
       const cell = e.target.closest('.cell');
       if (!cell) return;
@@ -3324,6 +4138,17 @@ body {
     // 触屏拖拽支持
     let touchStart = null;
     boardEl.addEventListener('touchstart', (e) => {
+      // 加速：触屏轻击也可快进
+      if (gameState.isAnimating && _animTimers.length > 0 && e.touches.length === 1) {
+        const t0 = e.touches[0];
+        const target = document.elementFromPoint(t0.clientX, t0.clientY);
+        // 不在道具栏/弹窗内时
+        if (target && (target.closest('#board') || target.closest('.board-wrap'))) {
+          // 记录轻击起始，后续 touchend 再判断是否真的是单击
+          touchStart = { r: 0, c: 0, x: t0.clientX, y: t0.clientY, speedUpTap: true };
+          return;
+        }
+      }
       if (gameState.isAnimating || gameState.gameOver || gameState.paused) return;
       if (gameState.activeItem) return;
       const touch = e.touches[0];
@@ -3341,6 +4166,15 @@ body {
 
     boardEl.addEventListener('touchend', (e) => {
       if (!touchStart) return;
+      // 加速轻击
+      if (touchStart.speedUpTap) {
+        if (gameState.isAnimating && _animTimers.length > 0) {
+          gameState.fastForward = true;
+          _flushQueue();
+        }
+        touchStart = null;
+        return;
+      }
       const touch = e.changedTouches[0];
       const dx = touch.clientX - touchStart.x;
       const dy = touch.clientY - touchStart.y;
@@ -3534,6 +4368,64 @@ body {
     }
   };
 
+  // ========= 健康检查：持续监控 candy 状态，自动修复遮罩 =========
+  function _candyHealthCheck() {
+    try {
+      if (!boardEl) return;
+      const candies = boardEl.querySelectorAll('.candy');
+      let fixed = 0;
+      candies.forEach(function(el) {
+        const comp = window.getComputedStyle(el);
+        const opacity = parseFloat(comp.opacity);
+        const hasMaskClass = el.classList.contains('removing') || el.classList.contains('pre-clear');
+        const filterVal = comp.filter;
+        const bg = comp.backgroundColor;
+        const isHidden = comp.display === 'none' || comp.visibility === 'hidden';
+
+        // 检测遮罩：opacity降低、filter异常、有遮罩类、背景色异常、元素隐藏
+        const isMasked = opacity < 0.99
+          || hasMaskClass
+          || (filterVal && filterVal !== 'none')
+          || isHidden;
+
+        if (isMasked) {
+          // 记录诊断信息
+          console.warn('[HealthCheck] Masked candy detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
+            'opacity=' + opacity,
+            'filter=' + filterVal,
+            'classes=' + el.className,
+            'bg=' + bg,
+            'display=' + comp.display,
+            'visibility=' + comp.visibility,
+            'transform=' + comp.transform,
+            'animation=' + comp.animationName);
+          sanitizeCandyElement(el);
+          fixed++;
+        }
+
+        // 同时检查子元素
+        const face = el.querySelector('.face, .rainbow-face');
+        if (face) {
+          const faceComp = window.getComputedStyle(face);
+          if (parseFloat(faceComp.opacity) < 0.99 || (faceComp.filter && faceComp.filter !== 'none')) {
+            console.warn('[HealthCheck] Masked face detected at (' + el.dataset.r + ',' + el.dataset.c + '):',
+              'face-opacity=' + faceComp.opacity,
+              'face-filter=' + faceComp.filter);
+            face.style.opacity = '';
+            face.style.filter = '';
+            face.style.webkitFilter = '';
+            fixed++;
+          }
+        }
+      });
+      if (fixed > 0) {
+        console.warn('[HealthCheck] fixed ' + fixed + ' masked candies at ' + new Date().toISOString());
+      }
+    } catch (e) {
+      console.error('[HealthCheck] error:', e);
+    }
+  }
+
   // ========= 初始化 =========
   function init() {
     try {
@@ -3542,6 +4434,30 @@ body {
       renderLevelMap();
       document.getElementById('start-screen').classList.add('active');
       checkThumbnailMode();
+
+      // MutationObserver：监控棋盘内 candy 元素的异常修改
+      try {
+        if (typeof MutationObserver !== 'undefined' && boardEl) {
+          var candyObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1 && node.classList && node.classList.contains('candy')) {
+                  sanitizeCandyElement(node);
+                }
+                if (node.nodeType === 1 && node.querySelectorAll) {
+                  node.querySelectorAll('.candy').forEach(sanitizeCandyElement);
+                }
+              });
+            });
+          });
+          candyObserver.observe(boardEl, { childList: true, subtree: true });
+        }
+      } catch (obsErr) {
+        console.error('[MutationObserver] setup error:', obsErr);
+      }
+
+      // 周期性健康检查（每 200ms 扫描一次）
+      setInterval(_candyHealthCheck, 200);
     } catch (e) {
       console.error('Init error:', e);
       var errDiv = document.createElement('div');
