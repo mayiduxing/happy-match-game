@@ -4588,8 +4588,10 @@ body {
             el.classList.contains('special-spawn')) {
           return;
         }
-        // 鼠标悬停高亮（.cell:hover .candy 有 brightness 滤光）是正常交互态，跳过
-        if (el.matches && el.matches(':hover')) {
+        // 悬停高亮是正常交互态，跳过。注意 CSS 规则是 .cell:hover .candy —— 棋子只占格子
+        // 82%，鼠标停在格子边缘空隙时格子处于 hover、棋子有 brightness(1.08) 滤光，
+        // 但棋子自身不匹配 :hover，必须检查其所在 cell 是否 hover。
+        if (el.closest && el.closest('.cell:hover')) {
           return;
         }
         const comp = window.getComputedStyle(el);
